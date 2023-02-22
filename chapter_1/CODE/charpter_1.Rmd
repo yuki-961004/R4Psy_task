@@ -1,0 +1,198 @@
+---
+title: "chapter1"
+author: "yuki"
+date: "2023-02-06"
+output: html_document
+---
+
+```{r Used Pacakge, include=FALSE}
+library(tidyverse)
+library(here)
+
+library(bruceR)
+library(BayesFactor)
+
+options(scipen=999)
+```
+
+```{r Set Working Directory}
+WD <-  here::here()
+knitr::opts_knit$set(root.dir = 'cur_dir')
+getwd()
+
+df.raw <-  read.csv('../R_PPT/stroop_all.csv',header = T, sep=",", stringsAsFactors = FALSE) 
+```
+# t test
+```{r df.t, message=FALSE}
+df.t <- df.raw %>%
+  dplyr::select("worker_id" ,
+                "condition",
+                "acc" = "correct",
+                "block_type" = "exp_stage",
+                "rt" ,
+                "trial_id",
+                "stim_color",
+                "stim_word"
+               ) %>% #select columns we need & rename
+        #remove "s" in subj_idx
+        dplyr::mutate(subj_idx = str_remove(worker_id, pattern = "[s]")) %>% 
+        dplyr::select(-worker_id) %>%
+        # dplyr::mutate(across("rt", as.numeric)) %>%
+        dplyr::mutate(rt = as.numeric(rt)) %>%
+        dplyr::mutate(across("acc", as.factor)) %>%
+        #remove outliers below and above 3rd sd
+        dplyr::filter(rt > quantile(rt, 0.0015) & rt < quantile(rt, 0.9985)) %>% 
+        dplyr::filter(block_type == "test") %>% # only keep exp trials
+        dplyr::filter(!is.na(rt))  %>% #remove na in rt 
+        dplyr::group_by(subj_idx, condition, acc) %>%
+        dplyr::summarise(n = n(),
+                         rt_sd = sd(as.numeric(rt), na.rm = T),
+                         rt_mean = mean(as.numeric(rt), na.rm = T)
+                         ) %>%
+        dplyr::ungroup()
+```
+
+```{r df.onet & df.pairt & df.indt}
+# df for One-sample t-test
+df.t.one <- df.t %>% 
+  dplyr::filter(condition == "congruent" & acc == "1")
+
+# df for pair t-test
+df.t.pair <- df.t %>% 
+  dplyr::select(-"rt_sd", -"n")%>% 
+  dplyr::filter(acc == "1") %>% 
+  tidyr::pivot_wider(names_from = condition, 
+                     values_from = rt_mean)
+
+#df for Independent t-test
+set.seed(1234)
+df.group1 <-  df.t.pair %>% 
+               sample_frac(0.5, replace = FALSE) %>% 
+                dplyr::mutate(group = "A" ) #assign group id
+id.df.group1 <- df.group1 %>% 
+                dplyr::pull(subj_idx)
+# id.df.group1 
+df.group2 <- df.t.pair %>% 
+                dplyr::filter(!(subj_idx %in% id.df.group1)) %>% 
+                dplyr::mutate(group = "B" ) #assign group id
+# rbind
+df.t.ind <-rbind(df.group1, df.group2)
+
+# clean local variable
+rm(df.group1,df.group2,id.df.group1)
+```
+
+```{r t test one & pair & independent}
+bruceR::TTEST(df.t.one, "rt_mean", test.value = 700, test.sided = "=")
+
+bruceR::TTEST(df.t.pair , y = c("congruent", "incongruent"), paired = T)
+
+bruceR::TTEST(df.t.ind, "congruent", x="group")
+```
+
+# F test
+```{r df.F.ANOVA.within & df.F.ANOVA.between, message=FALSE}
+# df.F.ANOVA.within
+df.F.ANOVA.within <- df.raw %>%
+ dplyr::select("worker_id",
+                "condition",
+                "acc" = "correct",
+                "block_type" = "exp_stage",
+                "rt",
+                "trial_id",
+                "stim_color",
+                "stim_word") %>% #select columns we need & rename
+  dplyr::mutate(subj_idx = str_remove(worker_id, pattern = "[s]")) %>% #remove "s" in subj_idx:
+  dplyr::select(-worker_id) %>%
+  dplyr::filter(acc == 1) %>% #only keep correct trials
+  dplyr::filter(rt > quantile(rt, 0.0015) & rt < quantile(rt, 0.9985)) %>% #remove outliers below and above 3rd sd
+  dplyr::mutate(rt = as.numeric(rt)) %>%
+  dplyr::mutate(across("acc", as.factor)) %>%
+  dplyr::mutate(stim_color = as.factor(stim_color)) %>%
+  dplyr::mutate(stim_word = as.factor(stim_word)) %>%
+  dplyr::filter(block_type == "test") %>% #only keep exp trials
+  dplyr::filter(!is.na(rt))  %>% #remove na in rt
+  dplyr::group_by(subj_idx, stim_word) %>%
+  dplyr::summarise(n = n(),
+                   rt_sd = sd(as.numeric(rt), na.rm = T),
+                   rt_mean = mean(as.numeric(rt), na.rm = T)) %>%
+  dplyr::ungroup()
+
+# df.F.ANOVA.between
+#将原数据集中的被试数据随机分成3组
+set.seed(1000)
+group_id <- sample(1:3, length(unique(df.F$subj_idx)), replace = TRUE)
+df.F.ANOVA.between <- df.F.ANOVA.within %>%
+  dplyr::select("subj_idx",
+                "stim_word",
+                "rt_mean") %>%
+  tidyr::pivot_wider(names_from = stim_word,
+                     values_from = rt_mean) %>%
+  dplyr::mutate(group_id = group_id) %>%
+  dplyr::mutate(across("group_id", as.factor))
+
+rm(group_id)
+```
+
+```{r F test ANOVA within}
+#比较正确反应试次中，三种单词刺激颜色条件下反应时间的差异
+  df.F.ANOVA.within %>%
+  bruceR::MANOVA(subID="subj_idx",
+                 dv="rt_mean",
+                 within="stim_word") %>%
+# 若不符合球形假设要加上：sph.correction = "GG"
+  bruceR::EMMEANS("stim_word") # 三水平的多重比较
+```
+
+```{r F test ANOVA between}
+  df.F.ANOVA.between %>%
+  bruceR::MANOVA(dv="red",
+                 between = "group_id") %>%
+  bruceR::EMMEANS("group_id") # 三水平间多重比较
+```
+
+# Regression
+```{r regression}
+lm_result <- lm(rt_mean ~ condition + acc + n, data = df.t)
+summary(lm_result)
+```
+
+# Regression
+```{r regression}
+lm_result <- lm(rt_mean ~ stim_word + n + stim_word*n, data = df.F.ANOVA.within)
+summary(lm_result)
+```
+
+# SEM
+```{r CFA & SEM}
+# CFA
+CFA_sss <- ' SSS =~ TAS + ES + D + BS'  %>%
+  CFA(data=dat_cfa,.) 
+
+
+CFA_iv <- ' I =~ I1 + I2 + I3 + I4
+            V =~ V1 + V2 + V3' %>%
+  CFA(data=dat_cfa,.) 
+
+CFA_iv_sss <- 'I =~ I1 + I2 + I3 + I4
+               V =~ V1 + V2 + V3
+               SSS =~ TAS + ES + D + BS'  %>%
+  CFA(data=dat_cfa,.) 
+
+# SEM
+SEM_iv_sss <- 'I =~ I1 + I2 + I3 + I4
+               V =~ V1 + V2 + V3
+               SSS =~ TAS + ES + D + BS
+               SSS ~ I + V'  %>%
+  sem(.,data=dat_cfa,estimator="WLSMV") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+```
+
+
+
+
+
+
+

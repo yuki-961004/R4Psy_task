@@ -1,0 +1,882 @@
+############################### Library Packages################################
+
+#basic
+library(bruceR)
+library(tidyverse)
+#SEM
+library(lavaan)
+library(lavaanPlot)
+#T-test
+library(coda)
+library(BayesFactor)
+
+library(lme4)
+library(lmerTest)
+#plot
+library(ggplot2)
+library(ggforce)
+library(ggdist)
+library(gghalves)
+
+library(remotes)
+  #if (!require(remotes)){install.packages("remotes")}
+  #remotes::install_github('jorvlan/raincloudplots')
+library(raincloudplots)
+
+library(qgraph)
+
+################################ Import DATA ###################################
+
+#all items
+dat_rt <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\dospert_rt_survey.csv") %>%
+  dplyr::mutate(item = paste("rt",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response) 
+dat_rt
+
+dat_rp <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\dospert_rp_survey.csv") %>%
+  dplyr::mutate(item = paste("rp",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response)  
+dat_rp
+
+dat_eb <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\dospert_eb_survey.csv") %>%
+  dplyr::mutate(item = paste("eb",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response) 
+dat_eb
+
+#item parceling
+#independent 
+dat_iv <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\impulsive_venture_survey.csv") %>%
+  dplyr::mutate(item = paste("iv",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response)  %>%
+  dplyr::rowwise() %>% 
+  dplyr::mutate(I1 = iv5+iv6+iv7+iv10+iv12,na.rm=TRUE) %>%
+  dplyr::mutate(I2 = iv14+iv15+iv16+iv17+iv20,na.rm=TRUE) %>%
+  dplyr::mutate(I3 = iv21+iv23+iv25+iv28+iv29,na.rm=TRUE) %>%
+  dplyr::mutate(I4 = iv30+iv32+iv33+iv34,na.rm=TRUE) %>%
+  dplyr::mutate(V1 = iv1+iv2+iv3+iv4+iv8,na.rm=TRUE) %>%
+  dplyr::mutate(V2 = iv9+iv11+iv13+iv18+iv19,na.rm=TRUE) %>%
+  dplyr::mutate(V3 = iv22+iv24+iv26+iv27+iv31,na.rm=TRUE) %>%
+  dplyr::select(worker_id,I1,I2,I3,I4,V1,V2,V3)
+dat_iv
+
+dat_sss <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\sensation_seeking_survey.csv") %>%
+  dplyr::mutate(item = paste("sss",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response) %>%
+  dplyr::rowwise() %>% 
+  dplyr::mutate(TAS = sss3+sss11+sss16+sss17+sss20+sss21+sss23+sss28+sss38+sss40,na.rm=TRUE) %>%
+  dplyr::mutate(ES = sss4+sss6+sss10+sss14+sss18+sss19+sss22+sss26+sss37,na.rm=TRUE) %>%
+  dplyr::mutate(D = sss1+sss12+sss13+sss25+sss29+sss30+sss32+sss33+sss35+sss36,na.rm=TRUE) %>%
+  dplyr::mutate(BS = sss2+sss5+sss7+sss8+sss15+sss24+sss27+sss31+sss34+sss39,na.rm=TRUE) %>%
+  dplyr::select(worker_id,TAS,ES,D,BS)
+dat_sss
+
+#mediator 
+dat_rt_p <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\dospert_rt_survey.csv") %>%
+  dplyr::mutate(item = paste("rt",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response) %>%
+  dplyr::rowwise() %>% 
+  dplyr::mutate(Ert = (rt6 + rt9 + rt10 + rt16 +rt29 +rt30)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Frt = (rt3 + rt4 + rt8 +rt12 +rt14 +rt18)/6,na.rm=TRUE) %>%
+  dplyr::mutate(HSrt= (rt5 + rt15 + rt17 + rt20 + rt23 +rt26)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Rrt = (rt2 + rt11 + rt13 +rt19 +rt24 +rt25)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Srt = (rt1 + rt7 + rt21 + rt22 +rt27 +rt28)/6,na.rm=TRUE) %>%
+  dplyr::select(worker_id,Ert,Frt,HSrt,Rrt,Srt)
+dat_rt_p
+
+dat_rp_p <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\dospert_rp_survey.csv") %>%
+  dplyr::mutate(item = paste("rp",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response)   %>%
+  dplyr::rowwise() %>% 
+  dplyr::mutate(Erp = (rp6 + rp9 + rp10 + rp16 +rp29 +rp30)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Frp = (rp3 + rp4 + rp8 +rp12 +rp14 +rp18)/6,na.rm=TRUE) %>%
+  dplyr::mutate(HSrp= (rp5 + rp15 + rp17 + rp20 + rp23 +rp26)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Rrp = (rp2 + rp11 + rp13 +rp19 +rp24 +rp25)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Srp = (rp1 + rp7 + rp21 + rp22 +rp27 +rp28)/6,na.rm=TRUE) %>%
+  dplyr::select(worker_id,Erp,Frp,HSrp,Rrp,Srp) 
+dat_rp_p
+
+
+dat_eb_p <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\dospert_eb_survey.csv") %>%
+  dplyr::mutate(item = paste("eb",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response) %>%
+  dplyr::rowwise() %>% 
+  dplyr::mutate(Eeb = (eb6 + eb9 + eb10 + eb16 +eb29 +eb30)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Feb = (eb3 + eb4 + eb8 +eb12 +eb14 +eb18)/6,na.rm=TRUE) %>%
+  dplyr::mutate(HSeb= (eb5 + eb15 + eb17 + eb20 + eb23 +eb26)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Reb = (eb2 + eb11 + eb13 +eb19 +eb24 +eb25)/6,na.rm=TRUE) %>%
+  dplyr::mutate(Seb = (eb1 + eb7 + eb21 + eb22 +eb27 +eb28)/6,na.rm=TRUE) %>%
+  dplyr::select(worker_id,Eeb,Feb,HSeb,Reb,Seb)
+dat_eb_p
+
+#dependent
+dat_art <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\angling_risk_task_always_sunny.csv") %>%
+  dplyr::filter(.,exp_stage == "test" & key_press == "13") %>%
+  dplyr::select("worker_id",
+                "release",
+                "tournament_bank",
+                "trip_bank") %>%
+  dplyr::mutate(release = as.factor(release),
+                tournament_bank = as.numeric(tournament_bank),
+                trip_bank=as.numeric(trip_bank),
+                worker_id) %>%
+  dplyr::group_by(worker_id,release) %>%
+  dplyr::summarize(gain=max(tournament_bank),
+                   risk=mean(trip_bank)) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = release, values_from = risk)
+
+dat_hl <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\holt_laury_survey.csv") %>%
+  dplyr::mutate(item = paste("hl",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = safe1_risky0)  %>%
+  dplyr::rowwise() %>% 
+  dplyr::mutate(HL = hl1+hl2+hl3+hl4+hl5+hl6+hl7+hl8+hl9+hl10) %>%
+  dplyr::select(worker_id,HL)
+
+dat_iv
+#demography
+dat_dmg <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\demographics_survey.csv") %>%
+  dplyr::mutate(item = paste("dmg",question_num-1,sep = "")) %>%
+  tidyr::pivot_wider(id_cols = worker_id, names_from = item, values_from = response) %>%
+  dplyr::select("worker_id",
+                "gender" = "dmg1",
+                "age" = "dmg2",
+                "race" = "dmg3",
+                "edu" = "dmg6",
+                "relationship" = "dmg9",
+                "household" = "dmg14") %>%
+  dplyr::mutate(gender =(ifelse(gender==0,"male","female")),
+                gender = as.factor(gender),
+                age = as.numeric(age),
+                race =(ifelse(race=="White","white","others")),
+                race = as.factor(race),
+                edu = as.numeric(edu),
+                relationship =(ifelse(relationship==1,"single",
+                                      (ifelse(relationship==2, "relation", "married")))),
+                relationship = as.factor(relationship),
+                household = as.numeric(household)) 
+
+dat_dmg  
+dat_cfa <- dat_dmg %>%
+  dplyr::full_join(., dat_sss, by = "worker_id") %>%
+  dplyr::full_join(., dat_iv, by = "worker_id") %>%
+  dplyr::full_join(., dat_rt, by = "worker_id") %>%
+  dplyr::full_join(., dat_rp, by = "worker_id") %>%
+  dplyr::full_join(., dat_eb, by = "worker_id") %>%
+  dplyr::full_join(., dat_art, by = "worker_id") %>%
+  dplyr::full_join(., dat_hl, by = "worker_id") %>%
+  dplyr::mutate(subj_idx = str_remove(worker_id, pattern = "[s]"))
+
+dat_cfa_p <- dat_dmg %>%
+  dplyr::full_join(., dat_sss, by = "worker_id") %>%
+  dplyr::full_join(., dat_iv, by = "worker_id") %>%
+  dplyr::full_join(., dat_rt_p, by = "worker_id") %>%
+  dplyr::full_join(., dat_rp_p, by = "worker_id") %>%
+  dplyr::full_join(., dat_eb_p, by = "worker_id") %>%
+  dplyr::full_join(., dat_art, by = "worker_id") %>%
+  dplyr::full_join(., dat_hl, by = "worker_id") %>%
+  dplyr::mutate(subj_idx = str_remove(worker_id, pattern = "[s]"))
+
+write.csv(dat_cfa,file = "dat_cfa.csv")
+write.csv(dat_cfa_p,file = "dat_cfa_p.csv")
+
+################################### MODEL ######################################
+
+#simple mediation model(model 4)
+
+#risk_round on risk_score(RT/RP/EB) + Impulsive-Venturesome
+#risk_score(RT/RP/EB) on Impulsive-Venturesome
+
+#Y = risk_round
+#M = risk_score(RT/RP/EB)
+#X = Impulsive-Venturesome
+
+#################################### PLOT ######################################
+library(ggplot2)
+library(ggforce)
+library(ggdist)
+library(gghalves)
+################################ t-test plot ###################################
+library(coda)
+library(BayesFactor)
+
+library(lme4)
+library(lmerTest)
+
+shapiro.test(dat_art$Release)
+shapiro.test(dat_art$Keep)
+#Method 1 paired_t-test
+bruceR::TTEST(dat_art , y = c("Release", "Keep"), paired = T)
+#Method 2 MANOVA
+bruceR::MANOVA(data = plot_art, 
+               dv= "risk", 
+               within=c("release"),
+               subID = "subj_idx")
+#Method 3 HLM
+HLM_paired_t= lme4::lmer(data = plot_art, 
+              formula = risk ~ 1 + release +
+                              (1|subj_idx))
+summary(HLM_paired_t)
+
+#plot_art
+plot_art <- bruceR::import("C:\\Users\\hmz19\\Desktop\\story1\\angling_risk_task_always_sunny.csv") %>%
+  dplyr::filter(.,exp_stage == "test" & key_press == "13") %>%
+  dplyr::select("worker_id",
+                "release",
+                "tournament_bank",
+                "trip_bank") %>%
+  dplyr::mutate(release = as.factor(release),
+                tournament_bank = as.numeric(tournament_bank),
+                trip_bank=as.numeric(trip_bank),
+                worker_id) %>%
+  dplyr::group_by(worker_id,release) %>%
+  dplyr::summarize(gain=max(tournament_bank),
+                   risk=mean(trip_bank))%>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(subj_idx = str_remove(worker_id, pattern = "[s]")) 
+
+#rain cloud plot__risk
+  plot_art %>%
+  dplyr::select("release",
+                "risk") %>%
+ggplot(., aes(x = release, y = risk, color = release)) + 
+  ggdist::stat_halfeye(aes(fill=release), alpha = .5,
+                       adjust = .5, width = .3, .width = 0, 
+                       justification = -.3, point_colour = NA) + 
+  geom_boxplot(width = .1, outlier.shape = NA) +
+  gghalves::geom_half_point(side = "l", range_scale = .4, alpha = .5) +
+  xlab("release") + 
+  ylab("risk(round)") + 
+  bruceR::theme_bruce()
+#density plot__risk
+ggplot2::ggplot(data = plot_art, mapping = aes(x = risk, color = release, fill = release)) +
+    geom_histogram(aes(y=..density..), alpha = 0.65, size = 0.7,bins=30) +
+    geom_density(alpha = 0.2)+
+    scale_fill_manual(values = c("skyblue", "pink")) +
+    scale_color_manual(values = c("skyblue", "pink")) +
+    #scale_y_continuous(expand = c(0,0), limits = c(0, 0.09)) +
+    #scale_x_continuous(expand = c(0,0), limits = c(0, 50)) +
+    bruceR::theme_bruce()
+
+#rain cloud plot__gain
+plot_art %>%
+  dplyr::select("release",
+                "gain") %>%
+  ggplot(., aes(x = release, y = gain, color = release)) + 
+  ggdist::stat_halfeye(aes(fill=release), alpha = .5,
+                       adjust = .5, width = .3, .width = 0, 
+                       justification = -.3, point_colour = NA) + 
+  geom_boxplot(width = .1, outlier.shape = NA) +
+  gghalves::geom_half_point(side = "l", range_scale = .4, alpha = .5) +
+  xlab("release") + 
+  ylab("gain") + 
+  bruceR::theme_bruce()
+#density plot__gain
+ggplot2::ggplot(data = plot_art, mapping = aes(x = gain, color = release, fill = release)) +
+  geom_histogram(aes(y=..density..), alpha = 0.65, size = 0.7,bins=30) +
+  geom_density(alpha = 0.2)+
+  scale_fill_manual(values = c("skyblue", "pink")) +
+  scale_color_manual(values = c("skyblue", "pink")) +
+  #scale_y_continuous(expand = c(0,0), limits = c(0, 0.09)) +
+  #scale_x_continuous(expand = c(0,0), limits = c(0, 50)) +
+  bruceR::theme_bruce()
+
+#rain cloud plot 1x1 & repmes
+
+df_1x1 <- data_1x1(
+  array_1 = dat_art$Keep,
+  array_2 = dat_art$Release,
+  jit_distance = .09, # the amount of distance between jittered datapoints (0 by default)
+  jit_seed = 321) # the amount used in set.seed() (321 by default)
+
+raincloud_1x1( #creates the 1-by-1 comparison for grouped data
+  data = df_1x1, 
+  colors = (c('dodgerblue','darkorange')),#color lines
+  fills = (c('dodgerblue','darkorange')), 
+  size = 1, 
+  alpha = .6,
+  ort = 'h') + #vertical or horizontal display of rainclouds
+  scale_x_continuous(breaks=c(1,2), 
+                     labels=c("Keep", "Release"), 
+                     limits=c(0, 3)) +
+  xlab("Condition") + 
+  ylab("risk_round") +
+  bruceR::theme_bruce()
+
+summary(df_1x1$y_axis)
+
+raincloud_1x1_repmes(
+  data = df_1x1,
+  colors = (c('dodgerblue', 'darkorange')),
+  fills = (c('dodgerblue', 'darkorange')),
+  line_color = 'gray',
+  line_alpha = .3,
+  size = 1,
+  alpha = .6,
+  align_clouds = FALSE) +
+  scale_x_continuous(breaks=c(1,2), labels=c("Keep", "Release"), limits=c(0, 3)) +
+  xlab("Condition") + 
+  ylab("risk_round") +
+  theme_classic()
+
+################################ MANOVA plot ###################################
+#gender * relationship --- Keep (between)
+MANOVA(data=dat_cfa, dv="Keep", between=c("relationship", "gender"))
+
+ggplot(data = dat_cfa, aes(x = gender, y = Keep, color = relationship)) +
+  scale_y_continuous() +
+  ggdist::stat_halfeye(aes(fill=relationship),alpha = .7,adjust = .5, 
+                       width = .4, .width = 0,justification = -.3, 
+                       point_colour = NA, position = position_dodge(.9)) +
+  ggplot2::geom_boxplot(alpha = .3, width = .2, outlier.shape = NA, 
+                        position = position_dodge(.9)) +
+  gghalves::geom_half_point(side = "l", width = .05, range_scale = .4, 
+                            alpha = .1, position = position_dodge(.9)) +
+  scale_color_manual(values = c("skyblue", "lightgreen", "pink"))+
+  scale_fill_manual(values = c("skyblue", "lightgreen", "pink")) +
+  guides(fill = "none") +
+  xlab("Gender") + 
+  ylab("Keep(mean round)") +
+  labs(color = "Relationship") +
+  bruceR::theme_bruce()
+
+#gender * KR --- risk_round (mixed)
+
+dat_MANOVA=dat_cfa %>%
+ dplyr::select("gender",
+                "K1"="Keep",
+                "K2"="Release")
+
+MANOVA(data=dat_MANOVA, dvs="K1:K2", dvs.pattern="K(.)", between="gender",within="K")
+
+
+#combine dmg & art
+dat_DA = dat_dmg %>%
+  dplyr::left_join(., plot_art, by = "worker_id", na.rm = T)
+
+ggplot(data = dat_DA, aes(x = release, y = risk, color = gender)) +
+  scale_y_continuous() +
+  ggdist::stat_halfeye(aes(fill=gender),alpha = .7,adjust = .5, 
+                       width = .4, .width = 0,justification = -.3, 
+                       point_colour = NA, position = position_dodge(.9)) +
+  ggplot2::geom_boxplot(alpha = .3, width = .2, outlier.shape = NA, 
+                        position = position_dodge(.9)) +
+  gghalves::geom_half_point(side = "l", width = .05, range_scale = .4, 
+                            alpha = .1, position = position_dodge(.9)) +
+  scale_color_manual(values = c("skyblue", "pink"))+
+  scale_fill_manual(values = c("skyblue", "pink")) +
+  guides(fill = "none") +
+  xlab("") + 
+  ylab("risk(mean round)") +
+  labs(color = "Gender") +
+  bruceR::theme_bruce()
+
+############################### Regression plot ###################################
+
+dat_sum=dat_cfa_p %>%
+  dplyr::mutate(SSS = TAS + ES + D + BS, 
+                I = (I1 + I2 + I3 + I4)/4,
+                V = (V1 + V2 + V3)/3,
+                RC1 = (Ert + Frt + HSrt + Rrt + Srt)/5,
+                RC2 = (Erp + Frp + HSrp + Rrp + Srp)/5,
+                RC3 = (Eeb + Feb + HSeb + Reb + Seb)/5) %>%
+  dplyr::select(worker_id,
+                gender,
+                age,
+                race,
+                edu,
+                relationship,
+                household,
+                SSS,
+                IV1=I,
+                IV2=V,
+                RC1,
+                RC2,
+                RC3) %>%
+  dplyr::left_join(., plot_art, by = "worker_id") %>%
+  pivot_longer(cols = starts_with("RC"),
+               names_to = "R_type",
+               names_prefix = "RC",
+               values_to = "risk_score",
+               values_drop_na = TRUE) %>%
+  pivot_longer(cols = starts_with("IV"),
+               names_to = "IorV",
+               names_prefix = "IV",
+               values_to = "IV_score",
+               values_drop_na = TRUE) %>%
+  dplyr::mutate(KR=release,
+                risk_round=risk,
+                IorV =(ifelse(IorV==1,"I","V")),
+                R_type =(ifelse(R_type==1,"RT",
+                                      (ifelse(R_type==2, "RP", "EB"))))) %>%
+  dplyr::select(-risk,-release)
+
+#install.packages("ggpmisc")
+library(ggpmisc)
+#install.packages("ggpp")
+library(ggpp)
+
+#plot: IV_score---risk_score 
+ggplot(dat_sum, 
+       mapping = aes(x = IV_score, y= risk_score, fill = R_type, color = R_type), fig(5,2)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_fill_manual(values = c("skyblue", "lightgreen", "pink")) +
+  scale_color_manual(values = c("skyblue", "lightgreen", "pink")) +
+  scale_x_continuous(expand = c(0,0), limits = c(4, 11), breaks = seq(0, 10, 1)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 9), breaks = seq(0, 8, 1)) +
+  facet_grid(R_type ~ IorV)+  
+  bruceR::theme_bruce()+
+  stat_poly_line() +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label),
+                                 after_stat(rr.label), sep = "*\", \"*"))) 
+
+#plot: risk_score---risk_round
+ggplot(dat_sum, 
+       mapping = aes(x = risk_score, y= risk_round, fill = R_type, color = R_type), fig(5,2)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  scale_fill_manual(values = c("skyblue", "lightgreen", "pink")) +
+  scale_color_manual(values = c("skyblue", "lightgreen", "pink")) +
+  scale_x_continuous(expand = c(0,0), limits = c(0, 7), breaks = seq(0, 6, 1)) +
+  scale_y_continuous(expand = c(0,0), limits = c(0, 65), breaks = seq(0, 55, 10)) +
+  facet_grid(R_type ~ KR)+  
+  bruceR::theme_bruce()+
+  stat_poly_line() +
+  stat_poly_eq(aes(label = paste(after_stat(eq.label),
+                                 after_stat(rr.label), sep = "*\", \"*"))) 
+
+################################# CFA & SEM ####################################
+library(lavaan)
+################################### CFA X ######################################
+
+CFA_sss <- ' SSS =~ TAS + ES + D + BS'  %>%
+  CFA(data=dat_cfa,.) 
+
+
+CFA_iv <- ' I =~ I1 + I2 + I3 + I4
+            V =~ V1 + V2 + V3' %>%
+  CFA(data=dat_cfa,.) 
+
+CFA_iv_sss <- 'I =~ I1 + I2 + I3 + I4
+               V =~ V1 + V2 + V3
+               SSS =~ TAS + ES + D + BS'  %>%
+  CFA(data=dat_cfa,.) 
+
+
+SEM_iv_sss <- 'I =~ I1 + I2 + I3 + I4
+               V =~ V1 + V2 + V3
+               SSS =~ TAS + ES + D + BS
+               SSS ~ I + V'  %>%
+  sem(.,data=dat_cfa,estimator="WLSMV") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+# for collinearity of V & SSS, remain I & V, abandon SSS
+
+############################### CFA M RT RP EB #################################
+
+#first order
+CFA_rt_1 <- '       RT=~ Ert+Frt+HSrt+Rrt+Srt' %>%
+  CFA(data=dat_cfa_p,.)
+
+CFA_rp_1 <- '       RP=~ Erp+Frp+HSrp+Rrp+Srp' %>%
+  CFA(data=dat_cfa_p,.)
+
+CFA_eb_1 <- '       EB=~ Eeb+Feb+HSeb+Reb+Seb' %>%
+  CFA(data=dat_cfa_p,.)
+
+CFA_risk_score_1<- 'RT=~ Ert+Frt+HSrt+Rrt+Srt
+                    RP=~ Erp+Frp+HSrp+Rrp+Srp
+                    EB=~ Eeb+Feb+HSeb+Reb+Seb' %>%
+  CFA(data=dat_cfa_p,.)
+
+#second order
+CFA_rt_2 <- 'Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+             Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+             HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+             Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+             Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+             RT  =~ Ert+Frt+HSrt+Rrt+Srt' %>%
+  CFA(data=dat_cfa,.)
+
+
+CFA_rp_2 <- 'Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+             Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+             HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+             Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+             Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+             RP  =~ Erp+Frp+HSrp+Rrp+Srp' %>%
+  CFA(data=dat_cfa,.)
+
+
+CFA_eb_2 <- 'Eeb =~ eb6 + eb9 + eb10 + eb16 +eb29 +eb30
+             Feb =~ eb3 + eb4 + eb8 +eb12 +eb14 +eb18
+             HSeb=~ eb5 + eb15 + eb17 + eb20 + eb23 +eb26
+             Reb =~ eb2 + eb11 + eb13 +eb19 +eb24 +eb25
+             Seb =~ eb1 + eb7 + eb21 + eb22 +eb27 +eb28
+             EB  =~ Eeb+Feb+HSeb+Reb+Seb' %>%
+  CFA(data=dat_cfa,.)
+
+CFA_risk_score_2<- 'Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+                    Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+                    HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+                    Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+                    Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+                    Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                    Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                    HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                    Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                    Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                    Eeb =~ eb6 + eb9 + eb10 + eb16 +eb29 +eb30
+                    Feb =~ eb3 + eb4 + eb8 +eb12 +eb14 +eb18
+                    HSeb=~ eb5 + eb15 + eb17 + eb20 + eb23 +eb26
+                    Reb =~ eb2 + eb11 + eb13 +eb19 +eb24 +eb25
+                    Seb =~ eb1 + eb7 + eb21 + eb22 +eb27 +eb28
+                    RT=~ Ert+Frt+HSrt+Rrt+Srt
+                    RP=~ Erp+Frp+HSrp+Rrp+Srp
+                    EB=~ Eeb+Feb+HSeb+Reb+Seb' %>%
+  CFA(data=dat_cfa,.)
+
+CFA_RTRP_2<- 'Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+              Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+              HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+              Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+              Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+              Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+              Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+              HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+              Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+              Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+
+              RT=~ Ert+Frt+HSrt+Rrt+Srt
+              RP=~ Erp+Frp+HSrp+Rrp+Srp' %>%
+  CFA(data=dat_cfa,.)
+
+#bifactor
+CFA_RTRP_bi <-       'Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+                      Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+                      HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+                      Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+                      Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+                      
+                      Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                      Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                      HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                      Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                      Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                      
+                      RT=~ rt1+rt2+rt3+rt4+rt5+rt6+rt7+rt8+rt9+rt10++rt11+rt12+rt13+rt14+rt15+
+                           rt16+rt17+rt18+rt19+rt20+rt21+rt22+rt23+rt24+rt25+rt26+rt27+rt28+rt29+rt30
+                      RP=~ rp1+rp2+rp3+rp4+rp5+rp6+rp7+rp8+rp9+rp10++rp11+rp12+rp13+rp14+rp15+
+                           rp16+rp17+rp18+rp19+rp20+rp21+rp22+rp23+rp24+rp25+rp26+rp27+rp28+rp29+rp30
+                      
+                      Ert ~~ 0*Frt + 0*HSrt + 0*Rrt + 0*Srt 
+                      Frt ~~ 0*HSrt + 0*Rrt + 0*Srt 
+                      HSrt ~~ 0*Rrt + 0*Srt 
+                      Rrt ~~ 0*Srt 
+                      
+                      Erp ~~ 0*Frp + 0*HSrp + 0*Rrp + 0*Srp 
+                      Frp ~~ 0*HSrp + 0*Rrp + 0*Srp 
+                      HSrp ~~ 0*Rrp + 0*Srp 
+                      Rrp ~~ 0*Srp
+                      
+                      RT ~~ 0*Ert + 0*Frt + 0*HSrt + 0*Rrt + 0*Srt 
+                      RP ~~ 0*Erp + 0*Frp + 0*HSrp + 0*Rrp + 0*Srp '  %>%
+  cfa(.,data=dat_cfa,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+################################ SEM X---M #####################################
+#first order
+
+SEM_iv_RT_1 <- 'I =~ I1 + I2 + I3 + I4
+                V =~ V1 + V2 + V3
+                RT=~ Ert+Frt+HSrt+Rrt+Srt
+                       
+                RT ~ I + V'  %>%
+  sem(.,data=dat_cfa_p,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+SEM_iv_RP_1 <- 'I =~ I1 + I2 + I3 + I4
+                V =~ V1 + V2 + V3
+                RP=~ Erp+Frp+HSrp+Rrp+Srp
+                       
+                RP ~ I + V'  %>%
+  sem(.,data=dat_cfa_p,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+SEM_iv_EB_1 <- 'I =~ I1 + I2 + I3 + I4
+                V =~ V1 + V2 + V3
+                EB=~ Eeb+Feb+HSeb+Reb+Seb
+                       
+                EB ~ I + V'  %>%
+  sem(.,data=dat_cfa_p,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+#for collinearity of RT & EB, remain RT, abandon EB
+#first order
+SEM_iv_RTRP_1 <- 'I =~ I1 + I2 + I3 + I4
+                  V =~ V1 + V2 + V3
+                  RT=~ Ert+Frt+HSrt+Rrt+Srt
+                  RP=~ Erp+Frp+HSrp+Rrp+Srp
+                       
+                  RT ~ I + V
+                  RP ~ I + V'  %>%
+  sem(.,data=dat_cfa_p,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+#second order
+SEM_iv_RTRP_2 <- 'I =~ I1 + I2 + I3 + I4
+                  V =~ V1 + V2 + V3
+                  Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+                  Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+                  HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+                  Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+                  Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+                  Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                  Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                  HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                  Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                  Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                  RT  =~ Ert+Frt+HSrt+Rrt+Srt
+                  RP  =~ Erp+Frp+HSrp+Rrp+Srp
+                       
+                  RT ~ I + V
+                  RP ~ I + V'  %>%
+  sem(.,data=dat_cfa,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+#bifactor
+SEM_iv_RTRP_bi <-  'I =~ I1 + I2 + I3 + I4
+                    V =~ V1 + V2 + V3
+                    Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+                    Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+                    HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+                    Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+                    Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+                    
+                    Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                    Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                    HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                    Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                    Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                    
+                    RT=~ rt1+rt2+rt3+rt4+rt5+rt6+rt7+rt8+rt9+rt10++rt11+rt12+rt13+rt14+rt15+
+                         rt16+rt17+rt18+rt19+rt20+rt21+rt22+rt23+rt24+rt25+rt26+rt27+rt28+rt29+rt30
+                    RP=~ rp1+rp2+rp3+rp4+rp5+rp6+rp7+rp8+rp9+rp10++rp11+rp12+rp13+rp14+rp15+
+                         rp16+rp17+rp18+rp19+rp20+rp21+rp22+rp23+rp24+rp25+rp26+rp27+rp28+rp29+rp30
+                    
+                    Ert ~~ 0*Frt + 0*HSrt + 0*Rrt + 0*Srt 
+                    Frt ~~ 0*HSrt + 0*Rrt + 0*Srt 
+                    HSrt ~~ 0*Rrt + 0*Srt 
+                    Rrt ~~ 0*Srt 
+                    
+                    Erp ~~ 0*Frp + 0*HSrp + 0*Rrp + 0*Srp 
+                    Frp ~~ 0*HSrp + 0*Rrp + 0*Srp 
+                    HSrp ~~ 0*Rrp + 0*Srp 
+                    Rrp ~~ 0*Srp
+                    
+                    RT ~~ 0*Ert + 0*Frt + 0*HSrt + 0*Rrt + 0*Srt 
+                    RP ~~ 0*Erp + 0*Frp + 0*HSrp + 0*Rrp + 0*Srp 
+                    
+                    RT ~ I + V
+                    RP ~ I + V'  %>%
+  sem(.,data=dat_cfa,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+############################# SEM X---M---Y ###################################
+#first order
+SEM_iv_RTRP_1_risk_round <-  'I =~ I1 + I2 + I3 + I4
+                              V =~ V1 + V2 + V3
+                              RT=~ Ert+Frt+HSrt+Rrt+Srt
+                              RP=~ Erp+Frp+HSrp+Rrp+Srp
+                                   
+                              Kp =~ Keep
+                              Rl =~ Release
+                              
+                              Keep ~~ 0*Keep
+                              Release ~~ 0*Release
+                              
+                              RT ~ a1*I + a2*V
+                              RP ~ a3*I + a4*V
+                              Kp ~ b1*RT + b2*RP + c1*I + c2*V
+                              Rl ~ b3*RT + b4*RP + c3*I + c4*V
+
+                              I_RT_K:=a1*b1
+                              I_RP_K:=a3*b1
+                              I_RT_P:=a1*b3
+                              I_RP_P:=a3*b3
+                              V_RT_K:=a2*b1
+                              V_RP_K:=a4*b1
+                              V_RT_P:=a2*b3
+                              V_RP_P:=a4*b3
+                              '  %>%
+  sem(.,data=dat_cfa_p,estimator="ML") %>%
+  #modindices(., sort = TRUE, maximum.number = 5)
+  #bootstrapLavaan(., R=10, type="bollen.stine", FUN=fitMeasures, fit.measures="chisq") #%>%
+  summary(.,fit.measures=TRUE,standardized=TRUE)
+
+CFA_iv_RTRP_1_HL <-  'SSS =~ TAS + ES + D + BS
+                      I =~ I1 + I2 + I3 + I4
+                      V =~ V1 + V2 + V3
+                      RT=~ Ert+Frt+HSrt+Rrt+Srt
+                      RP=~ Erp+Frp+HSrp+Rrp+Srp
+                      Kp =~ Keep
+                      Rl =~ Release
+                      H_L =~ HL'  %>%
+  CFA(data=dat_cfa_p,.)
+
+
+
+#second order
+SEM_iv_RTRP_2_riSK_round <-  'I =~ I1 + I2 + I3 + I4
+                              V =~ V1 + V2 + V3
+                
+                              Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+                              Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+                              HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+                              Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+                              Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+                              Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                              Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                              HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                              Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                              Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                              RT  =~ Ert+Frt+HSrt+Rrt+Srt
+                              RP  =~ Erp+Frp+HSrp+Rrp+Srp
+                              
+                              Kp =~ Keep
+                              Rl =~ Release
+                              
+                              Keep ~~ 0*Keep
+                              Release ~~ 0*Release
+                              
+                              RT ~ I + V
+                              RP ~ I + V
+                              Kp ~ RT + RP + I + V
+                              Rl ~ RT + RP + I + V'  %>%
+  sem(.,data=dat_cfa,estimator="ML") #%>%
+#modindices(., sort = TRUE, maximum.number = 5)
+summary(.,fit.measures=TRUE,standardized=TRUE)
+
+library(lavaanPlot)
+lavaanPlot(model = SEM_iv_RTRP_1_risk_round)
+
+#################################Q graph########################################
+matrix_CFA_full<-  'SSS =~ TAS + ES + D + BS
+                    I =~ I1 + I2 + I3 + I4
+                    V =~ V1 + V2 + V3
+                    
+                    Ert =~ rt6 + rt9 + rt10 + rt16 +rt29 +rt30
+                    Frt =~ rt3 + rt4 + rt8 +rt12 +rt14 +rt18
+                    HSrt=~ rt5 + rt15 + rt17 + rt20 + rt23 +rt26
+                    Rrt =~ rt2 + rt11 + rt13 +rt19 +rt24 +rt25
+                    Srt =~ rt1 + rt7 + rt21 + rt22 +rt27 +rt28
+                    
+                    Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                    Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                    HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                    Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                    Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                    
+                    Eeb =~ eb6 + eb9 + eb10 + eb16 +eb29 +eb30
+                    Feb =~ eb3 + eb4 + eb8 +eb12 +eb14 +eb18
+                    HSeb=~ eb5 + eb15 + eb17 + eb20 + eb23 +eb26
+                    Reb =~ eb2 + eb11 + eb13 +eb19 +eb24 +eb25
+                    Seb =~ eb1 + eb7 + eb21 + eb22 +eb27 +eb28
+                    
+                    Kp =~ Keep
+                    Rl =~ Release
+                    H_L =~ HL' %>%
+  cfa(.,data=dat_cfa,estimator="ML") %>%
+  lavInspect(.,"standardized") 
+matrix_CFA_full
+
+matrix_CFA_dele<-  'I =~ I1 + I2 + I3 + I4
+                    V =~ V1 + V2 + V3
+
+                    Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                    Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                    HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                    Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                    Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+ 
+                    Kp =~ Keep
+                    Rl =~ Release
+                    H_L =~ HL' %>%
+  cfa(.,data=dat_cfa,estimator="ML") %>%
+  lavInspect(.,"standardized") 
+matrix_CFA_dele
+
+library(qgraph)
+
+qgraph(matrix_CFA_dele$psi,layout = "spring",graph = "pcor",
+                           posCol = "lightgreen", negCol = "pink")
+
+matrix_CFA_dele2<- 'I =~ I1 + I2 + I3 + I4
+                    V =~ V1 + V2 + V3
+
+                    Erp =~ rp6 + rp9 + rp10 + rp16 +rp29 +rp30
+                    Frp =~ rp3 + rp4 + rp8 +rp12 +rp14 +rp18
+                    HSrp=~ rp5 + rp15 + rp17 + rp20 + rp23 +rp26
+                    Rrp =~ rp2 + rp11 + rp13 +rp19 +rp24 +rp25
+                    Srp =~ rp1 + rp7 + rp21 + rp22 +rp27 +rp28
+                    
+                    Eeb =~ eb6 + eb9 + eb10 + eb16 +eb29 +eb30
+                    Feb =~ eb3 + eb4 + eb8 +eb12 +eb14 +eb18
+                    HSeb=~ eb5 + eb15 + eb17 + eb20 + eb23 +eb26
+                    Reb =~ eb2 + eb11 + eb13 +eb19 +eb24 +eb25
+                    Seb =~ eb1 + eb7 + eb21 + eb22 +eb27 +eb28
+                    
+                    Kp =~ Keep
+                    Rl =~ Release
+                    H_L =~ HL' %>%
+  cfa(.,data=dat_cfa,estimator="ML") %>%
+  lavInspect(.,"standardized") 
+matrix_CFA_dele2
+
+IV=c("I","V")
+RP=c("Erp","Frp","HSrp","Rrp","Srp")
+EB=c("Eeb","Feb","HSeb","Reb","Seb")
+Y= c("Kp","Rl","H_L")
+
+IV=c(1,2)
+RP=c(3,4,5,6,7)
+EB=c(8,9,10,11,12)
+Y= c(13,14,15)
+
+names(IV) <- c("I","V")
+names(RP) <- c("Erp","Frp","HSrp","Rrp","Srp")
+names(EB) <- c("Eeb","Feb","HSeb","Reb","Seb")
+names(Y) <- c("Kp","Rl","H_L")
+
+risk_group=list(IV,RP,EB,Y)
+names(risk_group) <- c("IV","RP","EB","Y")
+risk_group
+
+matrix_CFA_dele2$psi
+
+df <- matrix(matrix_CFA_dele2$psi,nrow=15,ncol=15)
+df
+
+rownames(df) <- c("I","V","Erp","Frp","HSrp","Rrp","Srp","Eeb","Feb","HSeb","Reb","Seb","Kp","Rl","H_L")
+colnames(df) <- c("I","V","Erp","Frp","HSrp","Rrp","Srp","Eeb","Feb","HSeb","Reb","Seb","Kp","Rl","H_L")
+
+
+risk_qgraph<-qgraph (df,layout = "groups",graph = "pcor",groups=risk_group,
+                     posCol = "lightgreen", negCol = "pink",
+                     directed = FALSE, edge.labels = F,esize = 8,
+                     color = c("#f3715c", "#73b9a2", "#a3cf62","#90d7ec"),
+                     border.color = "white",border.width = 1,
+                     label.color = "white",
+                     edge.width = 0.8)
+
+
+
+
+

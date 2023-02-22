@@ -1,0 +1,7 @@
+"0","WD <-  here::here()"
+"0","knitr::opts_knit$set(root.dir = 'cur_dir')"
+"0","getwd()"
+"1","[1]"
+"1"," ""C:/Users/hmz19/Desktop/R_PPT"""
+"1","
+"

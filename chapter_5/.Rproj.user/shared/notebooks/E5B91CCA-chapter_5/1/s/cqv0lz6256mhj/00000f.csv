@@ -1,0 +1,8 @@
+"0","# 使用select选择age和ALEX的所有题目"
+"0","df.clean.select <- df.raw %>%"
+"0","  dplyr::select(age, starts_with(""ALEX""), eatdrink, avoidance)"
+"0","#笨一点的方法，就是把16个ALEX都写出来"
+"0",""
+"0","# 看看其他变量是不是都消失了"
+"0","DT::datatable(head(df.clean.select, 10),"
+"0","              fillContainer = TRUE, options = list(pageLength = 3))"

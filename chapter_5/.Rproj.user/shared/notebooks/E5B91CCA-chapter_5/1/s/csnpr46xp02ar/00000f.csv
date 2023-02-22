@@ -1,0 +1,7 @@
+"0","# 读取原始数据"
+"0","df.raw <-  read.csv('../chapter_5/DATA/penguin_rawdata.csv',"
+"0","                    header = T, sep="","", stringsAsFactors = FALSE) "
+"0",""
+"0","# 康康原始数据长什么样"
+"0","DT::datatable(head(df.raw, 10),"
+"0","              fillContainer = TRUE, options = list(pageLength = 3))"

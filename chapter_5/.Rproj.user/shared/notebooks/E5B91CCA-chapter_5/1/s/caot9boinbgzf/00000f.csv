@@ -1,0 +1,7 @@
+"0","# 养成用相对路径的好习惯，便于其他人运行你的代码"
+"0","WD <-  here::here()"
+"0","getwd()"
+"1","[1]"
+"1"," ""F:/YuKi_Project/R_course/my_chapter/chapter_5"""
+"1","
+"

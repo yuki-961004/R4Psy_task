@@ -1,0 +1,20 @@
+---
+title: "幻灯忍者"
+subtitle: "写轮眼"
+author: "谢益辉"
+institute: "RStudio, PBC"
+date: "2016/12/12"
+output:
+  xaringan::moon_reader:
+    css: [default, zh-CN.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+```{r Set Working Directory}
+WD <-  here::here()
+knitr::opts_knit$set(root.dir = 'cur_dir')
+getwd()
+```

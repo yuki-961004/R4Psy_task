@@ -1,0 +1,7 @@
+"0","# 使用filter筛选出数据集中1995之后出生的被试"
+"0","df.clean.filter <- df.raw %>%"
+"0","  dplyr::filter(.,age >= 1995)"
+"0",""
+"0","# 看看筛选后的数据是不是只有95后"
+"0","DT::datatable(head(df.clean.filter, 10),"
+"0","              fillContainer = TRUE, options = list(pageLength = 3))"

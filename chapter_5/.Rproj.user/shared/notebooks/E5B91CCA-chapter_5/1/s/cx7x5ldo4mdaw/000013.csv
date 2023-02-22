@@ -1,0 +1,7 @@
+"0","# 把ALEX1 - 4求和"
+"0","df.clean.mutate_1 <- df.raw %>% "
+"0","  dplyr::mutate(ALEX_SUM = ALEX1 + ALEX2 + ALEX3 + ALEX4)"
+"0",""
+"0","# 看看是不是真的求和了"
+"0","DT::datatable(head(df.clean.mutate_1, 10),"
+"0","              fillContainer = TRUE, options = list(pageLength = 3))"

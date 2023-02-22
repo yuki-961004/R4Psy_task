@@ -1,0 +1,6 @@
+"0","# 这个函数怎么运行的不重要，以后你只需要把ALEX改成你的文件里的变量名"
+"0","df.clean.mutate_2 <- df.raw %>% "
+"0","  dplyr::mutate(ALEX_SUM = rowSums(select(., starts_with(""ALEX""))))"
+"0",""
+"0","DT::datatable(head(df.clean.mutate_2, 10),"
+"0","              fillContainer = TRUE, options = list(pageLength = 3, scrollX = TRUE))"

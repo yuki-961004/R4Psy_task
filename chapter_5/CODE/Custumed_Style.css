@@ -1,3 +1,4 @@
+/* 标题之间的行间距 */
 .remark-slide-content h1,
 .remark-slide-content h2,
 .remark-slide-content h3,
@@ -9,7 +10,7 @@
 }
 
 
-
+/* 标题的字号 */
 .remark-slide-content h1 {
   font-size: 2em;
 }

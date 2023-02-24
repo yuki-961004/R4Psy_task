@@ -105,7 +105,6 @@ _当你清洗数据时，也基本上会按照这个顺序来使用_
 ---
 class: center, middle
 # 接下来就要正式讲dplyr了
-## 准备好了吗
 <img src="https://dplyr.tidyverse.org/logo.png" alt="dplyr" style="display: block; margin: 0 auto;">
 <br>
 _我会在标题中写出这个过程对应的SPSS名称_
@@ -193,8 +192,8 @@ DT::datatable(head(df.clean.mutate_3, 10),
 ### 拆分文件 分组计算
 ```{r example of group_by rawdata_penguin}
 df.clean.group_by <- df.clean.mutate_3 %>%
-  dplyr::group_by(.,decade) %>% # 根据eatdrink这个变量拆分文件，eatdrink包含几个水平，文件就会被拆分为几份
-  dplyr::summarise(mean_avoidance = mean(avoidance)) %>% # 计算eatdrink每个水平下，age=1999的有多少个
+  dplyr::group_by(.,decade) %>% # 根据被试的出生年代，将数据拆分
+  dplyr::summarise(mean_avoidance = mean(avoidance)) %>% # 计算不同年代下被试的平均avoidance
   dplyr::ungroup()
 ```
 ```{r example of group_by rawdata_penguin DT, echo=FALSE}
@@ -264,7 +263,6 @@ DT::datatable(head(df.pg.clean, 5),
 ---
 class: center, middle
 # 接下来就要正式讲tidyr了
-## 准备好了吗
 <img src="https://tidyr.tidyverse.org/logo.png" alt="dplyr" style="display: block; margin: 0 auto;">
 <br>
 _我很少能在SPSS实现这些功能，或者说很难实现_
@@ -347,35 +345,137 @@ DT::datatable(head(df.clean.long, 48),
 ---
 # 5.3 数据预处理的进阶操作
 ## tidyr::drop_na
-### 删除含有缺失值的行（被试，试次...）
+### 删除含有缺失值的行（被试，试次，实验条件...）
 ```{r drop_na | rawdata_matchtask, warning=FALSE}
-df.drou_na <- df.mt.raw %>% 
+df.clean.drou_na <- df.mt.raw %>% 
   tidyr::drop_na()
 ```
-```{r drop_na | rawdata_matchtask DT, echo=FALSE}
-DT::datatable(head(df.drou_na, 10),
-              fillContainer = TRUE, options = list(pageLength = 3))
+```{r drop_na | rawdata_matchtask check NA}
+paste("原始数据集有", nrow(df.mt.raw), "行")
+paste("删除缺失值后有", nrow(df.clean.drou_na), "行")
+# 实际操作中，可能粗暴的删除所有含有缺失值的行并不妥
+# 因此建议通过dplyr::的filter来筛选出合格的被试（行）
+# 然后再用is.na()来检验是否还存在缺失值
+any(is.na(df.mt.raw)); sum(is.na(df.mt.raw))
 ```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+```{r example of total part1 rawdata_matchtask}
+df.mt.clean <- df.mt.raw %>%
+  dplyr::select(Subject, Age, Sex, Hand, #人口统计学
+                Block, Bin, Trial, # 试次
+                Shape, Label, Match, # 刺激
+                Resp, ACC, RT, # 反应结果
+                Morality, Identity # 自变量
+                ) %>% 
+  dplyr::filter(.,Hand == "R", # 选择右利手被试
+                  ACC != "-1" # 删除缺失值（无效应答试次）
+                ) %>%
+  dplyr::group_by(Subject, 
+                  Shape, Label, Match, 
+                  Morality, Identity) %>%
+  dplyr::summarise(mean_ACC = mean(ACC),
+                   mean_RT = mean(RT)) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(efficiency = mean_RT/mean_ACC) 
+```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+```{r example of total part1 rawdata_matchtask DT, echo=FALSE}
+DT::datatable(head(df.mt.clean, 24),
+              fillContainer = TRUE, options = list(pageLength = 8))
+```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+```{r example of total part2 rawdata_matchtask}
+df.mt.clean <- df.mt.clean %>%
+  dplyr::filter(Match == "match") %>%
+  # 自我优势效应一般讨论的是匹配条件下
+  # 人们对自己相关的信息反应快于非自我相关的
+  tidyr::extract(Shape, into = c("Shape_moral", "Shape_self"),
+                        regex = "(moral|immoral)(Self|Other)", remove = FALSE) %>% 
+  tidyr::extract(Label, into = c("Label_moral", "Label_self"), 
+                        regex = "(moral|immoral)(Self|Other)", remove = FALSE) %>% 
+  tidyr::unite(M_I, Morality, Identity, sep = "") 
+```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+Shape_moral == immoral --> Morality == Bad <br>
+Shape_Self == Self --> Identity == Self <br>
+```{r example of total part2 rawdata_matchtask DT, echo=FALSE}
+DT::datatable(head(df.mt.clean, 24),
+              fillContainer = TRUE, options = list(pageLength = 8))
+```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+```{r example of total part3 rawdata_matchtask}
+df.mt.clean <- df.mt.clean %>%
+  dplyr::select(Subject, Shape, efficiency) %>%
+  tidyr::pivot_wider(names_from = "Shape", values_from = "efficiency")
+```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+```{r example of total part3 rawdata_matchtask DT, echo=FALSE}
+DT::datatable(head(df.mt.clean, 24),
+              fillContainer = TRUE, options = list(pageLength = 8))
+```
+---
+感受一下如果所有数据清洗的代码放在一起是什么样子的
+```{r example of total part4 rawdata_matchtask, }
+df.mt.clean <- df.mt.raw %>%
+  dplyr::select(Subject, Age, Sex, Hand, #人口统计学
+                Block, Bin, Trial, # 试次
+                Shape, Label, Match, # 刺激
+                Resp, ACC, RT, # 反应结果
+                Morality, Identity # 自变量
+                ) %>% 
+  dplyr::filter(.,Hand == "R", # 选择右利手被试
+                  ACC != "-1" # 删除缺失值（无效应答试次）
+                ) %>%
+  dplyr::group_by(Subject, 
+                  Shape, Label, Match, 
+                  Morality, Identity) %>%
+  dplyr::summarise(mean_ACC = mean(ACC),
+                   mean_RT = mean(RT)) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(efficiency = mean_RT/mean_ACC) %>%
+  dplyr::filter(Match == "match") %>%
+  tidyr::extract(Shape, into = c("Shape_moral", "Shape_self"),
+                        regex = "(moral|immoral)(Self|Other)", remove = FALSE) %>% 
+  tidyr::extract(Label, into = c("Label_moral", "Label_self"), 
+                        regex = "(moral|immoral)(Self|Other)", remove = FALSE) %>% 
+  tidyr::unite(M_I, Morality, Identity, sep = "") %>%
+  dplyr::select(Subject, Shape, efficiency) %>%
+  tidyr::pivot_wider(names_from = "Shape", values_from = "efficiency")
+```
 
+---
+# 5.3 数据预处理的进阶操作
+## dplyr & tidyr::functions
+### 把之前学到的函数一起使用
+接下来，你就可以把immoral条件下和moral条件下自我和他人的值相减。得到所谓的自我优势效应的一个指标（efficiency上的差异） <br>
+同样的操作，你也可以应用在RT和ACC上 <br>
+最后，你可以比较每个被试，在immoral下的SEP和moral条件下的SPE有没有差异（重复度量t检验） <br>
 
-
-
-
-
-
-
-
-
-
-
-
-
+<img src="http://y.qichejiashi.com/tupian/upload/198079649.jpg" alt="dplyr" style="display: block; margin: 0 auto;">
 
 
 

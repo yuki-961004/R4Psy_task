@@ -6,7 +6,7 @@ institute: ""
 date: ""
 output:
   xaringan::moon_reader:
-    css: [default, zh-CN.css, Custumed_Style.css]
+    css: [default, Font_Style.css]
     lib_dir: libs
     nature:
       highlightStyle: github
@@ -16,15 +16,17 @@ output:
 class: center, middle
 <span style="font-size: 60px;">第五章</span> <br>
 <span style="font-size: 50px;">如何清理数据 二 数据的预处理</span> <br>
-
-<span style="font-size: 30px;">How to use dplyr</span> <br>
+<span style="font-size: 30px;">如何使用 dplyr 和 tidyr</span> <br>
+<br>
+<br>
 <span style="font-size: 30px;">胡传鹏</span> <br>
-<span style="font-size: 30px;">PPT: yuki</span> <br>
-<span style="font-size: 30px;">2023/02/22</span> <br>
+<span style="font-size: 30px;">2023/03/20</span> <br>
 
 ---
-# 5.1 数据预处理准备
-## 载入包
+class: center, middle
+<span style="font-size: 60px;">5.1 数据预处理准备</span> <br>
+---
+# <h1 lang="zh-CN">载入包</h1>
 ```{r used pacakge}
 # 所有路径使用相对路径
 library(here)
@@ -33,8 +35,7 @@ library(tidyverse)
 ```
 
 ---
-# 5.1 数据预处理准备
-## 设置工作路径
+# <h1 lang="zh-CN">设置工作路径</h1>
 ```{r Set Working Directory}
 # 养成用相对路径的好习惯，便于其他人运行你的代码
 WD <-  here::here()
@@ -42,9 +43,8 @@ getwd()
 ```
 
 ---
-# 5.1 数据预处理准备
-## 读取原始数据 
-### Penguin
+# <h1 lang="zh-CN">读取原始数据 </h1>
+## <h2 lang="en">Raw Data: Penguin </h2>
 ```{r Read Penguin RawData}
 # 读取原始数据
 df.pg.raw <-  read.csv('../DATA/penguin_rawdata.csv',
@@ -58,9 +58,8 @@ DT::datatable(head(df.pg.raw, 10),
 ```
 
 ---
-# 5.1 数据预处理准备
-## 读取原始数据
-### Match Task
+# <h1 lang="zh-CN">读取原始数据 </h1>
+## <h2 lang="en">Raw Data: Match Task </h2>
 ```{r Read Match Task RawData}
 # 读取原始数据
 df.mt.raw <-  read.csv('../DATA/MS_rep_matchingTask_raw.csv',
@@ -72,18 +71,22 @@ DT::datatable(head(df.mt.raw, 10),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr
+class: center, middle
+<span style="font-size: 60px;">5.2 数据预处理的基本操作</span> <br>
+---
+# <h1 lang="en">dplyr</h1>
 <br>
 
-dplyr is a grammar of data manipulation, providing a consistent set of verbs that help you solve the most common data manipulation challenges: <br>
+<body>
+  <p lang="en">dplyr is a grammar of data manipulation, providing a consistent set of verbs that help you solve the most common data manipulation challenges: </p>
+</body>
 
 <br>
 
 <img src="https://dplyr.tidyverse.org/logo.png" alt="dplyr" style="display: block; margin: 0 auto;">
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::functions
+# <h1 lang="en">dplyr::functions</h1>
+
 - filter() 选择符合某个条件的行（可能代表被试） <br>
 
 - mutate() 生成新的变量 <br>
@@ -101,18 +104,18 @@ dplyr is a grammar of data manipulation, providing a consistent set of verbs tha
 - arrange() 某一列的值，按照某个顺序排列（其他列也会随之变动） <br>
 
 _当你清洗数据时，也基本上会按照这个顺序来使用_
-  
+
 ---
 class: center, middle
-# 接下来就要正式讲dplyr了
+# <h1 lang="zh-CN">接下来就要正式讲dplyr了</h1>
 <img src="https://dplyr.tidyverse.org/logo.png" alt="dplyr" style="display: block; margin: 0 auto;">
 <br>
 _我会在标题中写出这个过程对应的SPSS名称_
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::filter 
-### 选择个案 
+# <h1 lang="en">dplyr::filter</h1>
+## <h2 lang="zh-CN">选择个案</h2>
+
 ```{r example of filter rawdata_penguin}
 # 使用filter筛选出数据集中1995之后出生的被试
 df.clean.filter <- df.pg.raw %>%
@@ -125,9 +128,9 @@ DT::datatable(head(df.clean.filter, 10),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::select
-### 选择变量
+# <h1 lang="en">dplyr::select</h1>
+## <h2 lang="zh-CN">选择变量</h2>
+
 ```{r example of select rawdata_penguin}
 # 使用select选择age和ALEX的所有题目
 df.clean.select <- df.pg.raw %>%
@@ -141,9 +144,8 @@ DT::datatable(head(df.clean.select, 10),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::mutate 
-### 计算变量 方法1
+# <h1 lang="en">dplyr::mutate</h1>
+## <h2 lang="zh-CN">计算变量 方法1</h2>
 ```{r example of mutate_1 rawdata_penguin}
 # 把ALEX1 - 4求和
 df.clean.mutate_1 <- df.pg.raw %>% 
@@ -156,9 +158,8 @@ DT::datatable(head(df.clean.mutate_1, 10),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::mutate 
-### 计算变量 方法2 ~~chatGPT告诉我的~~
+# <h1 lang="en">dplyr::mutate</h1>
+## <h2 lang="zh-CN">计算变量 方法2 ~~chatGPT告诉我的~~</h2>
 ```{r example of mutate_2 rawdata_penguin}
 # 这个函数怎么运行的不重要，以后你只需要把ALEX改成你的文件里的变量名
 df.clean.mutate_2 <- df.pg.raw %>% 
@@ -170,9 +171,9 @@ DT::datatable(head(df.clean.mutate_2, 10),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::mutate 
-### 重新编码为不同变量
+# <h1 lang="en">dplyr::mutate</h1>
+## <h2 lang="zh-CN">重新编码为不同变量</h2>
+
 ```{r example of mutate_3 rawdata_penguin}
 df.clean.mutate_3 <- df.pg.raw %>% 
   dplyr::mutate(decade = case_when(age <= 1969 ~ 60,
@@ -187,9 +188,9 @@ DT::datatable(head(df.clean.mutate_3, 10),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::group_by & summarise
-### 拆分文件 分组计算
+# <h1 lang="en">dplyr::group_by & summarise</h1>
+## <h2 lang="zh-CN">拆分文件 分组计算</h2>
+
 ```{r example of group_by rawdata_penguin}
 df.clean.group_by <- df.clean.mutate_3 %>%
   dplyr::group_by(.,decade) %>% # 根据被试的出生年代，将数据拆分
@@ -203,9 +204,9 @@ DT::datatable(head(df.clean.group_by, 4),
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 ```{r example of total rawdata_penguin}
 df.pg.clean <- df.pg.raw %>%
   dplyr::filter(eatdrink == 1) %>% 
@@ -218,7 +219,7 @@ df.pg.clean <- df.pg.raw %>%
                                    age >= 1970 & age <= 1979 ~ 70,
                                    age >= 1980 & age <= 1989 ~ 80,
                                    age >= 1990 & age <= 1999 ~ 90)
-                # 把年龄按照年代来重新编码
+                # 把年龄按照年代来重新编码 
                 ) %>%
   dplyr::group_by(decade) %>%
   # 按照年代将数据拆分
@@ -229,17 +230,21 @@ df.pg.clean <- df.pg.raw %>%
 ```
 
 ---
-# 5.2 数据预处理的基本操作
-## dplyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 ```{r result of total, echo=FALSE}
 DT::datatable(head(df.pg.clean, 5),
               fillContainer = TRUE, options = list(pageLength = 5))
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr
+class: center, middle
+<span style="font-size: 60px;">5.3 数据预处理的进阶操作</span> <br>
+
+---
+# <h1 lang="en">tidyr</h1>
+
 **The goal of tidyr is to help you create tidy data. Tidy data is data where:** <br>
 
 - Every column is variable. <br>
@@ -248,8 +253,8 @@ DT::datatable(head(df.pg.clean, 5),
 
 <img src="https://tidyr.tidyverse.org/logo.png" alt="dplyr" style="display: block; margin: 0 auto;">
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::functions
+# <h1 lang="en">tidyr::functions</h1>
+
 - separate() 把一个变量的单元格内的字符串拆成两份，变成两个变量 <br>
   **更适合用于按固定分隔符分割字符串，如将“2022-02-25”分成“2022”、“02”和“25”三列** <br>
 - extract() 类似于separate <br>
@@ -262,14 +267,14 @@ DT::datatable(head(df.pg.clean, 5),
 - drop_na() 删除缺失值
 ---
 class: center, middle
-# 接下来就要正式讲tidyr了
+# <h1 lang="zh-CN">接下来就要正式讲tidyr了</h1>
 <img src="https://tidyr.tidyverse.org/logo.png" alt="dplyr" style="display: block; margin: 0 auto;">
 <br>
 _我很少能在SPSS实现这些功能，或者说很难实现_
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::separate
-### 拆分单元格内字符串
+# <h1 lang="en">tidyr::separate</h1>
+## <h2 lang="zh-CN">拆分单元格内字符串</h2>
+
 ```{r tidyr::separate | rawdata_matchtask}
 df.clean.separate <- df.mt.raw %>%
   tidyr::separate(., col = Shape, into = c("Shape_moral", "Shape_self"), 
@@ -283,9 +288,9 @@ DT::datatable(head(df.clean.separate, 10),
               fillContainer = TRUE, options = list(pageLength = 3))
 ```
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::extract
-### 拆分单元格内字符串
+# <h1 lang="en">tidyr::extract</h1>
+## <h2 lang="zh-CN">拆分单元格内字符串</h2>
+
 ```{r tidyr::extract | rawdata_matchtask}
 df.clean.extract <- df.mt.raw %>% 
   tidyr::extract(Shape, into = c("Shape_moral", "Shape_self"),
@@ -300,9 +305,9 @@ DT::datatable(head(df.clean.extract, 10),
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::unite
-### 合并单元格的字符串
+# <h1 lang="en">tidyr::unite</h1>
+## <h2 lang="zh-CN">合并单元格的字符串</h2>
+
 ```{r tidyr::unite | rawdata_matchtask}
 df.clean.unite <- df.clean.separate %>%
   tidyr::unite(Shape, Shape_moral, Shape_self, sep = "") %>%
@@ -314,9 +319,9 @@ DT::datatable(head(df.clean.unite, 10),
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::pivot_wider
-### 长数据与宽数据的相互转换
+# <h1 lang="en">tidyr::pivot_wider</h1>
+## <h2 lang="zh-CN">长数据与宽数据的相互转换</h2>
+
 ```{r pivot_wider | rawdata_matchtask, warning=FALSE}
 df.clean.wide <- df.mt.raw %>% 
   dplyr::select(Subject, Block, Bin, Trial, RT) %>%
@@ -328,9 +333,9 @@ DT::datatable(head(df.clean.wide, 10),
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::pivot_longer
-### 长数据与宽数据的相互转换
+# <h1 lang="en">tidyr::pivot_longer</h1>
+## <h2 lang="zh-CN">长数据与宽数据的相互转换</h2>
+
 ```{r pivot_longer | rawdata_matchtask}
 df.clean.long <- df.clean.wide %>% 
   tidyr::pivot_longer(cols = 4:27,
@@ -343,9 +348,9 @@ DT::datatable(head(df.clean.long, 48),
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## tidyr::drop_na
-### 删除含有缺失值的行（被试，试次，实验条件...）
+# <h1 lang="en">tidyr::drop_na</h1>
+## <h2 lang="zh-CN">删除含有缺失值的行（被试，试次，实验条件...）</h2>
+
 ```{r drop_na | rawdata_matchtask, warning=FALSE}
 df.clean.drou_na <- df.mt.raw %>% 
   tidyr::drop_na()
@@ -360,9 +365,9 @@ any(is.na(df.mt.raw)); sum(is.na(df.mt.raw))
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr & tidyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 ```{r example of total part1 rawdata_matchtask}
 df.mt.clean <- df.mt.raw %>%
   dplyr::select(Subject, Age, Sex, Hand, #人口统计学
@@ -384,18 +389,18 @@ df.mt.clean <- df.mt.raw %>%
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr & tidyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 ```{r example of total part1 rawdata_matchtask DT, echo=FALSE}
 DT::datatable(head(df.mt.clean, 24),
               fillContainer = TRUE, options = list(pageLength = 8))
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr & tidyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 ```{r example of total part2 rawdata_matchtask}
 df.mt.clean <- df.mt.clean %>%
   dplyr::filter(Match == "match") %>%
@@ -409,9 +414,9 @@ df.mt.clean <- df.mt.clean %>%
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr & tidyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 Shape_moral == immoral --> Morality == Bad <br>
 Shape_Self == Self --> Identity == Self <br>
 ```{r example of total part2 rawdata_matchtask DT, echo=FALSE}
@@ -420,26 +425,23 @@ DT::datatable(head(df.mt.clean, 24),
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr & tidyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
+
 ```{r example of total part3 rawdata_matchtask}
 df.mt.clean <- df.mt.clean %>%
   dplyr::select(Subject, Shape, efficiency) %>%
   tidyr::pivot_wider(names_from = "Shape", values_from = "efficiency")
 ```
-
----
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
 ```{r example of total part3 rawdata_matchtask DT, echo=FALSE}
 DT::datatable(head(df.mt.clean, 24),
               fillContainer = TRUE, options = list(pageLength = 8))
 ```
+
 ---
-感受一下如果所有数据清洗的代码放在一起是什么样子的
-```{r example of total part4 rawdata_matchtask, }
+## <h2 lang="zh-CN">感受一下如果所有数据清洗的代码放在一起是什么样子</h2>
+
+```{r example of total part4 rawdata_matchtask, message=FALSE}
 df.mt.clean <- df.mt.raw %>%
   dplyr::select(Subject, Age, Sex, Hand, #人口统计学
                 Block, Bin, Trial, # 试次
@@ -468,9 +470,8 @@ df.mt.clean <- df.mt.raw %>%
 ```
 
 ---
-# 5.3 数据预处理的进阶操作
-## dplyr & tidyr::functions
-### 把之前学到的函数一起使用
+# <h1 lang="en">dplyr & tidyr::functions</h1>
+## <h2 lang="zh-CN">把之前学到的函数一起使用</h2>
 接下来，你就可以把immoral条件下和moral条件下自我和他人的值相减。得到所谓的自我优势效应的一个指标（efficiency上的差异） <br>
 同样的操作，你也可以应用在RT和ACC上 <br>
 最后，你可以比较每个被试，在immoral下的SEP和moral条件下的SPE有没有差异（重复度量t检验） <br>

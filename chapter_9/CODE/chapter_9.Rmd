@@ -1,0 +1,203 @@
+---
+title: "R course"
+subtitle: ""
+author: ""
+institute: ""
+date: ""
+output:
+  xaringan::moon_reader:
+    css: [default, Font_Style.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class: center, middle
+<span style="font-size: 60px;">第九章</span> <br>
+<span style="font-size: 50px;">如何进行基本的数据分析</span> <br>
+<span style="font-size: 50px;">中介和调节分析</span> <br>
+<span style="font-size: 30px;">PROCESS and lavaan(SEM)</span> <br>
+<br>
+<br>
+<span style="font-size: 30px;">胡传鹏</span> <br>
+<span style="font-size: 30px;">2023/04/17</span> <br>
+
+---
+class: center, middle
+<span style="font-size: 60px;">9.1 事前准备</span> <br>
+---
+# <h1 lang="zh-CN">必须要知道的东西</h1>
+<br>
+<center>
+<h2 lang="en">中介调节的鼻祖：Baron & Kenny (1986)</h2>
+</center>
+<br>
+
+<div style="display:flex; align-items:center;">
+  <img src="http://3.bp.blogspot.com/-6OBEhzon_Bk/VfHWHZXlSYI/AAAAAAAAd_Q/chk77Yk2Ohc/s1600/B%2526K%2Bmediator.png" style="width:50%; height: 50%;">
+  <img src="http://1.bp.blogspot.com/-LoVbz4fImR8/VfHWKAH073I/AAAAAAAAd_Y/gPJHy1moJFk/s1600/B%2526K%2Bmoderator.png" style="width:50%;">
+</div>
+<br>
+_<h5 lang="en">- Baron, R. M., & Kenny, D. A. (1986). The moderator–mediator variable distinction in social psychological research: Conceptual, strategic, and statistical considerations. Journal of personality and social psychology, 51(6), 1173. </h5>_
+---
+# <h1 lang="zh-CN">必须要知道的东西</h1>
+<br>
+<center>
+<h2 lang="en">PROCESS的作者：Andrew F. Hayes </h2>
+</center>
+<br>
+
+<div style="display:flex; align-items:center; justify-content:center;">
+  <img src="https://m.media-amazon.com/images/I/51h5ymu3dpL._SX348_BO1,204,203,200_.jpg" style="width:30%; height: 30%; margin-right: 20px;">
+  <img src="https://www.guilford.com/covers/large/9781462549030.jpg" style="width:30%; height: 30%;">
+</div>
+<br>
+_<h5 lang="en">- Hayes, A. F. (2017). Introduction to mediation, moderation, and conditional process analysis: A regression-based approach. Guilford publications. </h5>_
+---
+# <h1 lang="zh-CN">必须要知道的东西</h1>
+<br>
+<center>
+<h2 lang="en">解释调节很重要的一本书：Aiken, West & Reno (1991) </h2>
+</center>
+<br>
+<div style="display:flex; align-items:center;">
+  <img src="https://m.media-amazon.com/images/I/61rbpLiQmjL._AC_UF1000,1000_QL80_.jpg" style="width:25%; height: 25%;margin-right: 40px;">
+
+  - 因为对调节效应中对交乘项系数的解释，有很多误解。<br> 
+
+  - 不论是Hayes 还是 Aiken & West 都在这方面有类似的解释 (Hayes, 2017, p. 282; Aiken & West, 1991, p. 36).
+  <br>
+  <br>
+  _对调节效应的理解，也有助于日后学习HLM_
+</div>
+<br>
+_<h5 lang="en">- Aiken, L. S., West, S. G., & Reno, R. R. (1991). Multiple regression: Testing and interpreting interactions. sage. </h5>_
+---
+# <h1 lang="zh-CN">必须要知道的东西</h1>
+<br>
+<center>
+<h2 lang="en">bruceR::PROCESS & lavaan </h2>
+</center>
+<br>
+
+<div style="display:flex; align-items:center; justify-content:center;">
+  <img src="https://raw.githubusercontent.com/psychbruce/bruceR/main/man/figures/logo.png" style="width:30%; height: 30%; margin-right: 40px;">
+  <img src="https://assets.datacamp.com/production/course_6419/shields/original/shield_image_course_6419_20180703-12-1hbh8vg?1530639951" style="width:30%; height: 30%;">
+</div>
+<br>
+_<h5 lang="en">- Bao, H.-W.-S. (2022). bruceR: Broadly useful convenient and efficient R functions. R package version 0.8.x. https://CRAN.R-project.org/package=bruceR </h5>_
+_<h5 lang="en">- Rosseel Y (2012). “lavaan: An R Package for Structural Equation Modeling.” Journal of Statistical Software, 48(2), 1–36. doi:10.18637/jss.v048.i02. </h5>_
+---
+# <h1 lang="zh-CN">载入包 - 设置工作路径 - 导入原始数据</h1>
+```{r pacakge, message=FALSE}
+library(here)
+library(lavaan)
+library(bruceR, quietly = TRUE)
+```
+
+---
+# <h1 lang="zh-CN">载入包 - 设置工作路径 - 导入原始数据</h1>
+```{r WD & data}
+WD <-  here::here()
+
+df.pg.raw <-  read.csv('../DATA/penguin_rawdata.csv',
+                       header = T, sep=",", stringsAsFactors = FALSE)
+```
+```{r df.pg.raw DT, echo=FALSE}
+DT::datatable(head(df.pg.raw, 10),
+              fillContainer = TRUE, options = list(pageLength = 5))
+```
+
+---
+class: center, middle
+<span style="font-size: 60px;">9.2 PROCESS in R</span> <br>
+---
+# <h1 lang="zh-CN">想~~编~~一个模型</h1>
+<div style="display:flex; align-items:center;">
+  <img src="fig/model7_hayse.png" style="width:45%; height: 45%;margin-right: 90px;">
+  <font size=20> Model 7 </font> 
+</div>
+---
+# <h1 lang="zh-CN">想~~编~~一个模型</h1>
+<div style="display:flex; align-items:center;">
+  <img src="fig/model7.png" style="width:100%; height: 100%;"> <br>
+</div>
+---
+# <h1 lang="zh-CN">清洗数据</h1>
+# <h2 lang="zh-CN">对模型涉及变量的题目求均值</h2>
+```{r clean data mean(data), message = FALSE}
+df.pg.mean <- df.pg.raw %>%
+  dplyr::mutate(ALEX_mean = rowMeans(select(., starts_with("ALEX"))),
+                ECR_mean = rowMeans(select(., starts_with("ECR"))),
+                HOME_mean = rowMeans(select(., starts_with("HOME"))),
+                KAMF_mean = rowMeans(select(., starts_with("KAMF")))
+                ) %>%
+  dplyr::select(age, language, avgtemp, 
+                ALEX_mean, ECR_mean, HOME_mean, KAMF_mean)
+
+```  
+```{r df.pg.mean DT, echo=FALSE}
+DT::datatable(head(df.pg.mean, 10),
+              fillContainer = TRUE, options = list(pageLength = 5))
+```
+
+---
+# <h1 lang="en">bruceR::PROCESS</h1>
+## CODE
+```{r bruceR::PROCESS, message=FALSE}
+result.PROCESS <- capture.output({
+# capture.output 可以将这段代码的结果存储进一个变量中
+  bruceR::PROCESS(df.pg.mean,
+                  x = "ALEX_mean", #自变量
+                  y = "HOME_mean", # 因变量
+                  meds = c("ECR_mean"), # 中介变量 
+                  mods = c("KAMF_mean"), # 调节变量
+                  covs = c("age", "language", "avgtemp"), # 控制变量（协变量）
+                  #clusters = c(), #类似调节变量 分组变量
+                  #hlm.re.m = "",hlm.re.y = "",hlm.type = c("1-1-1", "2-1-1", "2-2-1"),
+                  #med.type = c("parallel", "serial"), # 中介变量之间是并列还是连续
+                  #mod.type = c("2-way", "3-way"), # 两项交互还是三项交互
+                  mod.path = c("x-m"), # 调节哪条路径
+                  cov.path = c("both"), # 控制变量进入几个方程，both意味着中介和因变量都会考虑控制变量
+                  #mod1.val = NULL,mod2.val = NULL, # 调节变量高低水平对应的值
+                  ci = c("boot"), # 置信区间使用bootstrap 或其他抽样方法
+                  nsim = 100, # 抽样的次数
+                  #seed = NULL, # 设置seed可以让每次的抽样结果都一样
+                  center = FALSE, # 是否对自变量和调节变量中心化。非中心化在解释时更方便
+                  std = FALSE, # 是否在计算钱对所有变量进行标准化
+                  digits = 3, # 保留的小数位数
+                  #nsmall = digits,file = NULL
+                  ) 
+})
+writeLines(result.PROCESS, "../OUTPUT/PROCESS.md") # .md最整齐
+```
+
+---
+# <h1 lang="en">bruceR::PROCESS</h1>
+## OUTPUT
+![](fig/PROCESS_1.png)
+
+---
+# <h1 lang="en">bruceR::PROCESS</h1>
+## OUTPUT
+![](fig/PROCESS_2.png)
+
+---
+# <h1 lang="en">bruceR::PROCESS</h1>
+## OUTPUT
+![](fig/PROCESS_3.png)
+
+---
+# <h1 lang="en">bruceR::PROCESS</h1>
+## OUTPUT
+![](fig/PROCESS_4.png)
+
+
+
+
+
+
+
+
+

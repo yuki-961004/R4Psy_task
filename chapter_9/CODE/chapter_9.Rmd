@@ -92,8 +92,10 @@ _<h5 lang="en">- Rosseel Y (2012). “lavaan: An R Package for Structural Equati
 # <h1 lang="zh-CN">载入包 - 设置工作路径 - 导入原始数据</h1>
 ```{r pacakge, message=FALSE}
 library(here)
+library(dplyr)
+#library(bruceR)
 library(lavaan)
-library(bruceR, quietly = TRUE)
+library(lavaanPlot)
 ```
 
 ---
@@ -144,8 +146,8 @@ DT::datatable(head(df.pg.mean, 10),
 
 ---
 # <h1 lang="en">bruceR::PROCESS</h1>
-## CODE
-```{r bruceR::PROCESS, message=FALSE}
+## <h2 lang="en">CODE</h2>
+```{r bruceR::PROCESS, message=FALSE, eval=FALSE}
 result.PROCESS <- capture.output({
 # capture.output 可以将这段代码的结果存储进一个变量中
   bruceR::PROCESS(df.pg.mean,
@@ -175,29 +177,273 @@ writeLines(result.PROCESS, "../OUTPUT/PROCESS.md") # .md最整齐
 
 ---
 # <h1 lang="en">bruceR::PROCESS</h1>
-## OUTPUT
+## <h2 lang="en">OUTPUT</h2>
 ![](fig/PROCESS_1.png)
 
 ---
 # <h1 lang="en">bruceR::PROCESS</h1>
-## OUTPUT
+## <h2 lang="en">OUTPUT</h2>
 ![](fig/PROCESS_2.png)
 
 ---
 # <h1 lang="en">bruceR::PROCESS</h1>
-## OUTPUT
+## <h2 lang="en">OUTPUT</h2>
 ![](fig/PROCESS_3.png)
 
 ---
 # <h1 lang="en">bruceR::PROCESS</h1>
-## OUTPUT
+## <h2 lang="en">OUTPUT</h2>
 ![](fig/PROCESS_4.png)
 
+---
+class: center, middle
+<span style="font-size: 60px;">9.2 SEM in R</span> <br>
+<span style="font-size: 40px;">using lavaan</span> <br>
+
+---
+# <h1 lang="zh-CN">结构方程模型的教科书</h1>
+<br>
+<center>
+<h2 lang="en">引用量140k的经典：Hair (2009)</h2>
+</center>
+<br>
+
+<div style="display:flex; justify-content:center; align-items:center;">
+  <img src="https://m.media-amazon.com/images/P/B091YLY4LS.01._SCLZZZZZZZ_SX500_.jpg" style="width:30%; height: 30%; ">
+</div>
+<br>
+<center>
+<h4 lang="zh-CN">之后的分析流程均参考自这本书</h4>
+</center>
+<br>
+_<h5 lang="en">- Hair, J. F. (2009). Multivariate data analysis. </h5>_
+
+---
+# <h1 lang="zh-CN">清洗数据</h1>
+# <h2 lang="zh-CN">选择模型内的变量</h2>
+```{r clean data select variables, message = FALSE}
+df.pg.items <- df.pg.raw %>%
+  dplyr::select(., age, language, avgtemp, 
+                starts_with("ALEX"),
+                starts_with("ECR"),
+                starts_with("HOME"),
+                starts_with("KAMF")
+                ) 
+```  
+```{r df.pg.items DT, echo=FALSE}
+DT::datatable(head(df.pg.items, 10),
+              fillContainer = TRUE, options = list(pageLength = 5))
+```
+
+---
+# <h1 lang="zh-CN">查找量表题目与维度的对应关系</h1>
+
+ALEX：16题(TAS-20)<br>    DIF1 3,5,6,7,10,11; DDF 2,4,8,9, EOT 12,13,14,15,16 <br>
+_<h5 lang="en">- Taylor, G. J., Bagby, R. M., & Parker, J. D. (2003). The 20-Item Toronto Alexithymia Scale: IV. Reliability and factorial validity in different languages and cultures. Journal of psychosomatic research, 55(3), 277-283. </h5>_
+
+<br>
+
+ECR：36题   1-18为焦虑，19-36为回避 <br>
+
+_<h5 lang="en">- Fraley, R. C., Waller, N. G., & Brennan, K. A. (2000). An item response theory analysis of self-report measures of adult attachment. Journal of personality and social psychology, 78(2), 350. </h5>_
+
+<br>
+
+HOME：9题 <br>
+_<h5 lang="zh-CN">来源未知</h5>_
+
+<br>
+
+KAMF：7题 <br>
+_<h5 lang="zh-CN">来源未知</h5>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">CODE</h2>
+```{r CFA_ALEX}
+result.CFA_ALEX <- capture.output({
+  CFA_ALEX<- 'DIF =~ ALEX1 + ALEX3 + ALEX5 + ALEX6 + ALEX7 + ALEX10 + ALEX11
+              DDF =~ ALEX2 + ALEX4 + ALEX8 + ALEX9
+              EOF =~ ALEX12 + ALEX13 + ALEX14 + ALEX15 + ALEX16
+              ALEX =~ DIF + DDF + EOF' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA_ALEX,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA_ALEX, "../OUTPUT/CFA_ALEX.md")
+```
+
+_<h4 lang="zh-CN">- 报错说有方差为负</h4>_
+_<h4 lang="zh-CN">- 大概率是因为有两个维度（或题目）之间存在共线性。学名叫Heywood Case</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">PLOT</h2>
+```{r CFA_ALEX PLOT, eval=FALSE}
+lavaanPlot(model = CFA_ALEX, edge_options = list(color = "grey"))
+```
+![](fig/CFA_PLOT.png)
+
+_<h4 lang="zh-CN">- lavaan的画图并不是很好看，建议还是去AMOS里画图</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/CFA_ALEX_1.png)
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/CFA_ALEX_2.png)
+_<h4 lang="zh-CN">- 模型拟合度指标CFI, TLI, RMSEA, SRMR 问题都不大</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/CFA_ALEX_3.png)
+_<h4 lang="zh-CN">- 问题出在'DDF <- ALEX '的载荷超过了1。说明DDF和某个维度之间存在共线性</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/CFA_ALEX_4.png)
+_<h4 lang="zh-CN">- DDF和某个维度之间存在共线性，所以DDF的方差为负</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+```{r CFA_ALEX three dimension, eval=FALSE}
+result.CFA_ALEX <- capture.output({
+  CFA_ALEX<- 'DIF =~ ALEX1 + ALEX3 + ALEX5 + ALEX6 + ALEX7 + ALEX10 + ALEX11
+              DDF =~ ALEX2 + ALEX4 + ALEX8 + ALEX9
+              EOF =~ ALEX12 + ALEX13 + ALEX14 + ALEX15 + ALEX16' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA_ALEX,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA_ALEX, "../OUTPUT/CFA_ALEX.md")
+```
+_<h4 lang="zh-CN">- 想弄明白DDF和谁有共线性，我们可以先不做二阶模型，把ALEX的三个维度当作三个一阶变量看待。</h4>_
+_<h4 lang="zh-CN">- 找到哪两个维度之间有高相关，然后将它们合并为一个维度</h4>_
+![](fig/CFA_ALEX_5.png)
+_<h4 lang="zh-CN">- 看来是DIF和DDF之间的相关过高了（存在共线性）</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+```{r CFA_ALEX two dimension, eval=FALSE}
+result.CFA_ALEX <- capture.output({
+  CFA_ALEX<- 'DIDF =~ ALEX1 + ALEX3 + ALEX5 + ALEX6 + ALEX7 + ALEX10 + ALEX11 + ALEX2 + ALEX4 + ALEX8 + ALEX9
+              EOF =~ ALEX12 + ALEX13 + ALEX14 + ALEX15 + ALEX16' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA_ALEX,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA_ALEX, "../OUTPUT/CFA_ALEX.md")
+```
+_<h4 lang="zh-CN">- 按照原文所说，将DIF和DDF合并为DIDF</h4>_
+![](fig/CFA_ALEX_6.png)
+
+_<h4 lang="zh-CN">- 两个维度无法做二阶变量（不足识别，自由度不够）</h4>_
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">CODE</h2>
+```{r CFA_ECR, eval=FALSE}
+result.CFA_ECR <- capture.output({
+  CFA_ECR<- 'ANX =~ ECR1 + ECR2 + ECR3 + ECR4 + ECR5 + ECR6 + ECR7 + ECR8 + ECR9 + ECR10 + ECR11 + ECR12 + ECR13 + ECR14 + ECR15 + ECR16 + ECR17 + ECR18
+             AVO =~ ECR19 + ECR20 + ECR21 + ECR22 + ECR23 + ECR24 + ECR25 + ECR26 + ECR27 + ECR28 + ECR29 + ECR30 + ECR31 + ECR32 + ECR33 + ECR34 + ECR35 + ECR36' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA_ECR,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA_ECR, "../OUTPUT/CFA_ECR.md")
+```
+```{r CFA_HOME, eval=FALSE}
+result.CFA_HOME <- capture.output({
+CFA_HOME<- 'HOME =~ HOME1 + HOME2 + HOME3 + HOME4 + HOME5 + HOME6 + HOME7 + HOME8 + HOME9' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA_HOME,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA_HOME, "../OUTPUT/CFA_HOME.md")
+```
+```{r CFA_KAMF, eval=FALSE}
+result.CFA_KAMF <- capture.output({
+CFA_KAMF<- 'KAMF =~ KAMF1 + KAMF2 + KAMF3 + KAMF4 + KAMF5 + KAMF6 + KAMF7' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA_KAMF,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA_KAMF, "../OUTPUT/CFA_KAMF.md")
+```
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">CODE</h2>
+```{r CFA, eval=FALSE}
+result.CFA <- capture.output({
+CFA<- 'DIDF =~ ALEX1 + ALEX3 + ALEX5 + ALEX6 + ALEX7 + ALEX10 + ALEX11 + ALEX2 + ALEX4 + ALEX8 + ALEX9
+       EOF =~ ALEX12 + ALEX13 + ALEX14 + ALEX15 + ALEX16
+       ALEX =~ DIDF + EOF
+            
+       ANX =~ ECR1 + ECR2 + ECR3 + ECR4 + ECR5 + ECR6 + ECR7 + ECR8 + ECR9 + ECR10 + ECR11 + ECR12 + ECR13 + ECR14 + ECR15 + ECR16 + ECR17 + ECR18
+       AVO =~ ECR19 + ECR20 + ECR21 + ECR22 + ECR23 + ECR24 + ECR25 + ECR26 + ECR27 + ECR28 + ECR29 + ECR30 + ECR31 + ECR32 + ECR33 + ECR34 + ECR35 + ECR36
+       ECR =~ ANX + AVO
+            
+       HOME =~ HOME1 + HOME2 + HOME3 + HOME4 + HOME5 + HOME6 + HOME7 + HOME8 + HOME9
+            
+       KAMF =~ KAMF1 + KAMF2 + KAMF3 + KAMF4 + KAMF5 + KAMF6 + KAMF7' %>%
+  lavaan::cfa(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(CFA,fit.measures=TRUE,standardized=TRUE)
+})
+writeLines(result.CFA, "../OUTPUT/CFA.md")
+```
+_<h4 lang="zh-CN">- 在对每个变量都进行了CFA检验后，需要将所有变量放在一起做CFA。</h4>_
+_<h4 lang="zh-CN">- 此时自由度足够，哪怕是两维度的二阶变量，也可以定义为二阶变量</h4>_
+_<h4 lang="zh-CN">- 结果过长，之后仅展现几个重点部分</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/CFA_0.png)
+_<h4 lang="zh-CN">- 模型拟合度比较糟糕</h4>_
+
+---
+# <h1 lang="zh-CN">验证性因素分析</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/CFA_1.png)
+![](fig/CFA_2.png)
+_<h4 lang="zh-CN">- 两个二阶变量的二阶载荷可以接受</h4>_
+<br>
+![](fig/CFA_3.png)
+_<h4 lang="zh-CN">- ALEX和ECR高度相关，如果是正式构建模型，建议只使用其中一个</h4>_
 
 
+---
+# <h1 lang="zh-CN">结构方程模型</h1>
+## <h2 lang="en">CODE</h2>
+```{r SEM, eval=FALSE}
+result.SEM <- capture.output({
+SEM<- 'DIDF =~ ALEX1 + ALEX3 + ALEX5 + ALEX6 + ALEX7 + ALEX10 + ALEX11 + ALEX2 + ALEX4 + ALEX8 + ALEX9
+       EOF =~ ALEX12 + ALEX13 + ALEX14 + ALEX15 + ALEX16
+       ALEX =~ DIDF + EOF
+            
+       ANX =~ ECR1 + ECR2 + ECR3 + ECR4 + ECR5 + ECR6 + ECR7 + ECR8 + ECR9 + ECR10 + ECR11 + ECR12 + ECR13 + ECR14 + ECR15 + ECR16 + ECR17 + ECR18
+       AVO =~ ECR19 + ECR20 + ECR21 + ECR22 + ECR23 + ECR24 + ECR25 + ECR26 + ECR27 + ECR28 + ECR29 + ECR30 + ECR31 + ECR32 + ECR33 + ECR34 + ECR35 + ECR36
+       ECR =~ ANX + AVO
+            
+       HOME =~ HOME1 + HOME2 + HOME3 + HOME4 + HOME5 + HOME6 + HOME7 + HOME8 + HOME9
 
+       ECR ~ a*ALEX + age + language + avgtemp
+       HOME ~ b*ECR + age + language + avgtemp
 
+       ind_eff:=a*b ' %>%
+  lavaan::sem(.,data=df.pg.items,estimator="ML") 
+  lavaan::summary(SEM,fit.measures=TRUE, standardized=TRUE, ci=TRUE)
+})
+writeLines(result.SEM, "../OUTPUT/SEM.md")
+```
 
-
-
-
+---
+# <h1 lang="zh-CN">结构方程模型</h1>
+## <h2 lang="en">OUTPUT</h2>
+![](fig/SEM_1.png)
+![](fig/SEM_2.png)
+_<h4 lang="zh-CN">- 这里的模型是ALEX -> ECR -> HOME简单的模型4</h4>_
+_<h4 lang="zh-CN">- 间接效应a*b是显著小于0的</h4>_
+_<h4 lang="zh-CN">- 潜变量的调节在lavaan中还只能以原始的手动交乘完成，有兴趣可以自己去探索</h4>_
+_<h4 lang="zh-CN">- 如果你的模型中一定用latent moderator，你可以使用Mplus，或者回到PROCESS</h4>_

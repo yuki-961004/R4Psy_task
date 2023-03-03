@@ -92,15 +92,18 @@ _<h5 lang="en">- Rosseel Y (2012). “lavaan: An R Package for Structural Equati
 # <h1 lang="zh-CN">载入包 - 设置工作路径 - 导入原始数据</h1>
 ```{r pacakge, message=FALSE}
 library(here)
-library(dplyr)
-#library(bruceR)
 library(lavaan)
 library(lavaanPlot)
+#library(bruceR)
+library(dplyr)
+library(tidyr)
+
+# 载入bruceR有点慢，PPT中就不载入了
 ```
 
 ---
 # <h1 lang="zh-CN">载入包 - 设置工作路径 - 导入原始数据</h1>
-```{r WD & data}
+```{r WD & df.pg.raw}
 WD <-  here::here()
 
 df.pg.raw <-  read.csv('../DATA/penguin_rawdata.csv',
@@ -128,7 +131,7 @@ class: center, middle
 ---
 # <h1 lang="zh-CN">清洗数据</h1>
 # <h2 lang="zh-CN">对模型涉及变量的题目求均值</h2>
-```{r clean data mean(data), message = FALSE}
+```{r df.pg.mean, message = FALSE}
 df.pg.mean <- df.pg.raw %>%
   dplyr::mutate(ALEX_mean = rowMeans(select(., starts_with("ALEX"))),
                 ECR_mean = rowMeans(select(., starts_with("ECR"))),
@@ -221,7 +224,7 @@ _<h5 lang="en">- Hair, J. F. (2009). Multivariate data analysis. </h5>_
 ---
 # <h1 lang="zh-CN">清洗数据</h1>
 # <h2 lang="zh-CN">选择模型内的变量</h2>
-```{r clean data select variables, message = FALSE}
+```{r df.pg.items, message = FALSE}
 df.pg.items <- df.pg.raw %>%
   dplyr::select(., age, language, avgtemp, 
                 starts_with("ALEX"),
@@ -281,8 +284,12 @@ _<h4 lang="zh-CN">- 大概率是因为有两个维度（或题目）之间存在
 ```{r CFA_ALEX PLOT, eval=FALSE}
 lavaanPlot(model = CFA_ALEX, edge_options = list(color = "grey"))
 ```
+<br>
+<br>
+<br>
 ![](fig/CFA_PLOT.png)
-
+<br>
+<br>
 _<h4 lang="zh-CN">- lavaan的画图并不是很好看，建议还是去AMOS里画图</h4>_
 
 ---
@@ -374,19 +381,20 @@ writeLines(result.CFA_KAMF, "../OUTPUT/CFA_KAMF.md")
 ---
 # <h1 lang="zh-CN">验证性因素分析</h1>
 ## <h2 lang="en">CODE</h2>
-```{r CFA, eval=FALSE}
+```{r CFA_total}
 result.CFA <- capture.output({
 CFA<- 'DIDF =~ ALEX1 + ALEX3 + ALEX5 + ALEX6 + ALEX7 + ALEX10 + ALEX11 + ALEX2 + ALEX4 + ALEX8 + ALEX9
        EOF =~ ALEX12 + ALEX13 + ALEX14 + ALEX15 + ALEX16
-       ALEX =~ DIDF + EOF
             
        ANX =~ ECR1 + ECR2 + ECR3 + ECR4 + ECR5 + ECR6 + ECR7 + ECR8 + ECR9 + ECR10 + ECR11 + ECR12 + ECR13 + ECR14 + ECR15 + ECR16 + ECR17 + ECR18
        AVO =~ ECR19 + ECR20 + ECR21 + ECR22 + ECR23 + ECR24 + ECR25 + ECR26 + ECR27 + ECR28 + ECR29 + ECR30 + ECR31 + ECR32 + ECR33 + ECR34 + ECR35 + ECR36
-       ECR =~ ANX + AVO
             
        HOME =~ HOME1 + HOME2 + HOME3 + HOME4 + HOME5 + HOME6 + HOME7 + HOME8 + HOME9
             
        KAMF =~ KAMF1 + KAMF2 + KAMF3 + KAMF4 + KAMF5 + KAMF6 + KAMF7' %>%
+       # ALEX =~ DIDF + EOF
+       # ECR =~ ANX + AVO
+       # 为了后面做收敛和区别效度方便些，这里采用一阶模型
   lavaan::cfa(.,data=df.pg.items,estimator="ML") 
   lavaan::summary(CFA,fit.measures=TRUE,standardized=TRUE)
 })
@@ -394,6 +402,8 @@ writeLines(result.CFA, "../OUTPUT/CFA.md")
 ```
 _<h4 lang="zh-CN">- 在对每个变量都进行了CFA检验后，需要将所有变量放在一起做CFA。</h4>_
 _<h4 lang="zh-CN">- 此时自由度足够，哪怕是两维度的二阶变量，也可以定义为二阶变量</h4>_
+_<h4 lang="zh-CN">- 代码部分是为了后面方便做收敛与区别效度，没有做二阶</h4>_
+_<h4 lang="zh-CN">- 往后两张PPT 图片是以二阶模型得到的</h4>_
 _<h4 lang="zh-CN">- 结果过长，之后仅展现几个重点部分</h4>_
 
 ---
@@ -411,7 +421,6 @@ _<h4 lang="zh-CN">- 两个二阶变量的二阶载荷可以接受</h4>_
 <br>
 ![](fig/CFA_3.png)
 _<h4 lang="zh-CN">- ALEX和ECR高度相关，如果是正式构建模型，建议只使用其中一个</h4>_
-
 
 ---
 # <h1 lang="zh-CN">结构方程模型</h1>
@@ -447,3 +456,157 @@ _<h4 lang="zh-CN">- 这里的模型是ALEX -> ECR -> HOME简单的模型4</h4>_
 _<h4 lang="zh-CN">- 间接效应a*b是显著小于0的</h4>_
 _<h4 lang="zh-CN">- 潜变量的调节在lavaan中还只能以原始的手动交乘完成，有兴趣可以自己去探索</h4>_
 _<h4 lang="zh-CN">- 如果你的模型中一定用latent moderator，你可以使用Mplus，或者回到PROCESS</h4>_
+
+---
+class: center, middle
+<span style="font-size: 60px;">9.3 Extra</span> <br>
+<span style="font-size: 40px;">Convergent Validity and Discriminant Validity</span> <br>
+
+---
+# <h1 lang="zh-CN">收敛效度与区别效度</h1>
+## <h2 lang="en">semTools</h2>
+```{r semTools, message=FALSE}
+library(semTools)
+```
+```{r semTools::reliability}
+semTools::reliability(CFA)
+# 此处的alpha值与组成信度CR很接近
+# avevar就是AVE的值
+
+# 但是如果想得到一个比较完整的收敛效度与区别效度的表格，最好是是使用excel来完成
+# R可以做，但是很麻烦
+```
+
+---
+# <h1 lang="zh-CN">收敛效度与区别效度</h1>
+## <h2 lang="zh-CN">结果矩阵</h2>
+```{r matrix.CFA}
+matrix.CFA <- lavaan::lavInspect(CFA,"standardized") 
+CFA.loading <- as.data.frame(matrix.CFA$lambda) %>%
+  dplyr::select(DIDF, EOF, ANX, AVO, HOME, KAMF) %>%
+  dplyr::mutate_at(vars(DIDF, EOF, ANX, AVO, HOME, KAMF), round, 3)
+CFA.loading[CFA.loading == 0] <- NA
+
+CFA.correlation <- as.data.frame(matrix.CFA$psi) %>%
+  dplyr::mutate_at(vars(DIDF, EOF, ANX, AVO, HOME, KAMF), round, 3) %>%
+  .[c("DIDF","EOF","ANX","AVO","HOME","KAMF"), c("DIDF","EOF","ANX","AVO","HOME","KAMF")]
+# 如果是二阶模型，这里将看不到DIDF, EOF, ANX, AVO，只有ALEX和ECR
+
+write.csv(CFA.loading, "../OUTPUT/CFA.loading.csv")
+write.csv(CFA.correlation, "../OUTPUT/CFA.correlation.csv")
+```
+_<h4 lang="zh-CN">题目    <-    潜变量 = 'matrix.CFA$lambda'</h4>_
+_<h4 lang="zh-CN">题目    <->   题目 = 'matrix.CFA$theta'</h4>_
+_<h4 lang="zh-CN">潜变量  <->   潜变量 = 'matrix.CFA$psi'</h4>_
+_<h4 lang="zh-CN">潜变量  <-    潜变量 = 'matrix.CFA$psi'   在CFA中表示： 一阶潜变量  <-    二阶潜变量</h4>_
+
+---
+# <h1 lang="zh-CN">结果矩阵</h1>
+## <h2 lang="en">Factor Loading (lambda λ) </h2>
+```{r CFA.loading, echo=FALSE}
+DT::datatable(head(CFA.loading, 100),
+              fillContainer = TRUE, options = list(pageLength = 8))
+```
+
+---
+# <h1 lang="zh-CN">结果矩阵</h1>
+## <h2 lang="zh-CN"> Latent Variable Correlations (psi ψ)</h2>
+```{r CFA.correlation, echo=FALSE}
+DT::datatable(head(CFA.correlation, 6),
+              fillContainer = TRUE, options = list(pageLength = 6))
+```
+
+---
+# <h1 lang="zh-CN">收敛效度</h1>
+## <h2 lang="en">Average Variance Extracted</h2> 
+```{r Convergent Validity AVE}
+AVE <- CFA.loading %>%
+  # 分别对每个潜变量对应的题目的所有载荷求平方，又名SMC Squared Multiple Correlation
+  dplyr::mutate(across(.cols = everything(), ~ .^2, .names = "{col}_SMC")) %>% 
+  # 求SMC的平均值 即AVE Average Variance Extracted
+  dplyr::mutate(across(contains("_SMC"), ~ mean(., na.rm = TRUE),.names = "{col}_mean")) %>% 
+  # 会出现很多列结尾为mean的变量，即刚刚求的平均值（每一行的值都是重复的）
+  tidyr::pivot_longer(cols = contains("_mean"), names_to = "var") %>% 
+  # 需要把这些宽数据转化为长数据
+  tidyr::separate(var, into = c("name", "type"), sep = "_SMC_mean") %>% 
+  dplyr::select(Variable = name, AVE = value) %>%
+  dplyr::distinct() %>% # 删掉重复的值
+  # 给AVE开方，用于之后求区别效度
+  dplyr::mutate(sqrt_AVE = sqrt(AVE)) %>% 
+  dplyr::mutate_at(vars(AVE, sqrt_AVE), round, 3)
+```
+
+---
+# <h1 lang="zh-CN">收敛效度</h1>
+## <h2 lang="en">Average Variance Extracted</h2> 
+```{r AVE DT, echo=FALSE}
+DT::datatable(head(AVE, 6),
+              fillContainer = TRUE, options = list(pageLength = 6))
+```
+
+---
+# <h1 lang="zh-CN">收敛效度</h1>
+## <h2 lang="en">Composite Reliability</h2> 
+```{r Convergent Validity CR}
+# 我这里的方法很笨，将CR的计算公式一步步分解，然后手动计算
+CR <- CFA.loading %>%
+  # 对所有载荷求平方，又名SMC Squared Multiple Correlation
+  dplyr::mutate(across(.cols = everything(), ~ .^2, .names = "{col}_SMC")) %>% 
+  # 求1-SMC 用于之后计算CR Average Variance Extracted
+  dplyr::mutate(across(contains("_SMC"), ~ 1 - ., .names = "{col}_res")) %>% 
+  # 把SMC_res改名为_res
+  dplyr::rename_with(~sub("_SMC_res$", "_res", .), contains("_SMC_res")) %>% 
+  # 给loading列增加_LD的标签，方便后面计算
+  dplyr::rename_at(vars(matches("^([^_]+)$")), ~paste0(., "_LD")) %>% 
+  # 对每一列求和
+  colSums(.,na.rm = TRUE) %>%
+  data.frame(variable = names(.), total = .) %>%
+  tidyr::pivot_wider(., names_from = "variable", values_from = "total") %>%
+  dplyr::mutate(DIDF_CR = DIDF_LD*DIDF_LD / (DIDF_LD*DIDF_LD + DIDF_res),
+                EOF_CR = EOF_LD*EOF_LD / (EOF_LD*EOF_LD + EOF_res),
+                ANX_CR = ANX_LD*ANX_LD / (ANX_LD*ANX_LD + ANX_res),
+                AVO_CR = AVO_LD*AVO_LD / (AVO_LD*AVO_LD + AVO_res),
+                HOME_CR = HOME_LD*HOME_LD / (HOME_LD*HOME_LD + HOME_res),
+                KAMF_CR = KAMF_LD*KAMF_LD / (KAMF_LD*DIDF_LD + KAMF_res)) %>%
+  dplyr::mutate_at(vars(DIDF_CR, EOF_CR, ANX_CR, AVO_CR, HOME_CR, KAMF_CR), round, 3) %>%
+  dplyr::select(DIDF_CR, EOF_CR, ANX_CR, AVO_CR, HOME_CR, KAMF_CR) %>%
+  tidyr::pivot_longer(DIDF_CR:KAMF_CR,names_to = "Variable", values_to = "CR")
+```
+
+---
+# <h1 lang="zh-CN">收敛效度</h1>
+## <h2 lang="en">Composite Reliability</h2> 
+```{r CR DT, echo=FALSE}
+DT::datatable(head(CR, 6),
+              fillContainer = TRUE, options = list(pageLength = 6))
+```
+
+---
+# <h1 lang="zh-CN">区别效度</h1>
+## <h1 lang="en">Discriminant Validity</h1>
+_<h4 lang="zh-CN">写一个循环，把得到的根号下AVE填写到潜变量相关矩阵的对角线上</h4>_
+
+```{r Discriminant Validity}
+# 循环遍历AVE中的每个变量
+for(var in AVE$Variable) {   
+  # 找到匹配的行和列名称
+  row_name <- col_name <- var   
+  # 从AVE中获取sqrt_AVE的值
+  sqrt_ave <- AVE$sqrt_AVE[AVE$Variable == var]   
+  # 将CFA.correlation中的单元格替换为sqrt_AVE的值
+  CFA.correlation[row_name, col_name] <- sqrt_ave  
+}
+rm(row_name,sqrt_ave,col_name,var)
+# 我不会在R里定义局部变量，所以我习惯在循环结束后删除循环中用到的中间变量
+```
+
+---
+# <h1 lang="zh-CN">区别效度</h1>
+## <h1 lang="en">Discriminant Validity</h1>
+_<h4 lang="zh-CN">对角线为根号下AVE。如果该变量的根号下AVE大于该变量与其他变量的相关，则说明该变量与其他变量之间具有区别效度</h4>_
+```{r CFA.correlation Discriminant Validity DT, echo=FALSE}
+DT::datatable(head(CFA.correlation, 6),
+              fillContainer = TRUE, options = list(pageLength = 6))
+```
+
+

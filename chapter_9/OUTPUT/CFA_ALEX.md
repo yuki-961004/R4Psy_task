@@ -1,4 +1,4 @@
-lavaan 0.6.13 ended normally after 68 iterations
+lavaan 0.6.15 ended normally after 68 iterations
 
   Estimator                                         ML
   Optimization method                           NLMINB

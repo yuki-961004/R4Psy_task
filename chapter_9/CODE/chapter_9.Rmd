@@ -241,7 +241,7 @@ DT::datatable(head(df.pg.items, 10),
 ---
 # <h1 lang="zh-CN">查找量表题目与维度的对应关系</h1>
 
-ALEX：16题(TAS-20)<br>    DIF1 3,5,6,7,10,11; DDF 2,4,8,9, EOT 12,13,14,15,16 <br>
+ALEX：16题(TAS-20)<br>    DIF1 3,5,6,7,10,11; DDF 2,4,8,9; EOT 12,13,14,15,16 <br>
 _<h5 lang="en">- Taylor, G. J., Bagby, R. M., & Parker, J. D. (2003). The 20-Item Toronto Alexithymia Scale: IV. Reliability and factorial validity in different languages and cultures. Journal of psychosomatic research, 55(3), 277-283. </h5>_
 
 <br>
@@ -275,8 +275,12 @@ result.CFA_ALEX <- capture.output({
 writeLines(result.CFA_ALEX, "../OUTPUT/CFA_ALEX.md")
 ```
 
+_<h3 lang="en">- Heywood Case</h3>_
+
 _<h4 lang="zh-CN">- 报错说有方差为负</h4>_
-_<h4 lang="zh-CN">- 大概率是因为有两个维度（或题目）之间存在共线性。学名叫Heywood Case</h4>_
+_<h4 lang="zh-CN">- 大概率是因为有两个维度（或题目）之间存在共线性</h4>_
+
+_<h5 lang="en">- Van Driel, O. P. (1978). On various causes of improper solutions in maximum likelihood factor analysis. Psychometrika, 43, 225-243.</h5>_
 
 ---
 # <h1 lang="zh-CN">验证性因素分析</h1>
@@ -345,7 +349,8 @@ result.CFA_ALEX <- capture.output({
 })
 writeLines(result.CFA_ALEX, "../OUTPUT/CFA_ALEX.md")
 ```
-_<h4 lang="zh-CN">- 按照原文所说，将DIF和DDF合并为DIDF</h4>_
+_<h4 lang="zh-CN">- 按照原文(IJzerman et al., 2018)所说，将DIF和DDF合并为DIDF</h4>_
+
 ![](fig/CFA_ALEX_6.png)
 
 _<h4 lang="zh-CN">- 两个维度无法做二阶变量（不足识别，自由度不够）</h4>_
@@ -456,7 +461,7 @@ _<h4 lang="zh-CN">- 这里的模型是ALEX -> ECR -> HOME简单的模型4</h4>_
 _<h4 lang="zh-CN">- 间接效应a*b是显著小于0的</h4>_
 _<h4 lang="zh-CN">- 潜变量的调节在lavaan中还只能以原始的手动交乘完成，有兴趣可以自己去探索</h4>_
 _<h4 lang="zh-CN">- 如果你的模型中一定用latent moderator，你可以使用Mplus，或者回到PROCESS</h4>_
-
+_<h4 lang="zh-CN">- 你完全可以把Mplus当作一个R包来使用：install.packages("MplusAutomation")</h4>_
 ---
 class: center, middle
 <span style="font-size: 60px;">9.3 Extra</span> <br>
@@ -499,7 +504,8 @@ _<h4 lang="zh-CN">题目    <-    潜变量 = 'matrix.CFA$lambda'</h4>_
 _<h4 lang="zh-CN">题目    <->   题目 = 'matrix.CFA$theta'</h4>_
 _<h4 lang="zh-CN">潜变量  <->   潜变量 = 'matrix.CFA$psi'</h4>_
 _<h4 lang="zh-CN">潜变量  <-    潜变量 = 'matrix.CFA$psi'   在CFA中表示： 一阶潜变量  <-    二阶潜变量</h4>_
-
+<br>
+_<h4 lang="zh-CN">潜变量  <-    潜变量 = 'matrix.SEM$beta'  在SEM中表示： 潜变量   <-   潜变量</h4>_
 ---
 # <h1 lang="zh-CN">结果矩阵</h1>
 ## <h2 lang="en">Factor Loading (lambda λ) </h2>
@@ -510,7 +516,7 @@ DT::datatable(head(CFA.loading, 100),
 
 ---
 # <h1 lang="zh-CN">结果矩阵</h1>
-## <h2 lang="zh-CN"> Latent Variable Correlations (psi ψ)</h2>
+## <h2 lang="en"> Latent Variable Correlations (psi ψ)</h2>
 ```{r CFA.correlation, echo=FALSE}
 DT::datatable(head(CFA.correlation, 6),
               fillContainer = TRUE, options = list(pageLength = 6))
@@ -583,7 +589,7 @@ DT::datatable(head(CR, 6),
 
 ---
 # <h1 lang="zh-CN">区别效度</h1>
-## <h1 lang="en">Discriminant Validity</h1>
+## <h2 lang="en">Discriminant Validity</h2>
 _<h4 lang="zh-CN">写一个循环，把得到的根号下AVE填写到潜变量相关矩阵的对角线上</h4>_
 
 ```{r Discriminant Validity}
@@ -602,11 +608,22 @@ rm(row_name,sqrt_ave,col_name,var)
 
 ---
 # <h1 lang="zh-CN">区别效度</h1>
-## <h1 lang="en">Discriminant Validity</h1>
+## <h2 lang="en">Discriminant Validity</h2>
 _<h4 lang="zh-CN">对角线为根号下AVE。如果该变量的根号下AVE大于该变量与其他变量的相关，则说明该变量与其他变量之间具有区别效度</h4>_
 ```{r CFA.correlation Discriminant Validity DT, echo=FALSE}
 DT::datatable(head(CFA.correlation, 6),
               fillContainer = TRUE, options = list(pageLength = 6))
 ```
 
+---
+# <h1 lang="zh-CN">偷偷告诉你</h1>
+<br>
 
+<font size = 25>
+有计算AVE和CR的Excel，<br>
+只需要把标准化载荷粘贴进去 <br>
+就做好收敛和区别效度表
+</font>
+<div style="display:flex; align-items:center; justify-content:center;">
+  <img src="http://5b0988e595225.cdn.sohucs.com/images/20190731/106c2df806734067b92ef5aee97a70cd.jpeg" style="width:30%; height: 30%; margin-right: 20px;">
+</div>

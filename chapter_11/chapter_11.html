@@ -146,9 +146,9 @@ names(df)[2] &lt;- "Clean"
 p[[1]] &lt;- ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = Shape)) +
   ggplot2::geom_boxplot(color = "grey", alpha = 0.5) 
 names(p)[1] &lt;- "Box Plot"; p[[1]]
-ggsave(filename = "./picture/chp9/plot1.png", plot = p[[1]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot1.png", plot = p[[1]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot1.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot1.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::labs&lt;/h1&gt; 
@@ -158,9 +158,9 @@ ggsave(filename = "./picture/chp9/plot1.png", plot = p[[1]], height = 5, width =
 p[[2]] &lt;- p[[1]] +
   ggplot2::labs(x = "Moral &amp; Identity", y = "Mean of Reaction Time", title = "Boxplot of RT_mean by Shape") 
 names(p)[2] &lt;- "Plot Labels"; p[[2]]
-ggsave(filename = "./picture/chp9/plot2.png", plot = p[[2]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot2.png", plot = p[[2]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot2.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot2.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::geom_point&lt;/h1&gt; 
@@ -170,9 +170,9 @@ ggsave(filename = "./picture/chp9/plot2.png", plot = p[[2]], height = 5, width =
 p[[3]] &lt;- p[[2]] +
   ggplot2::geom_point(aes(colour = Shape), position = position_jitter(width = 0.2), size = 3, alpha = 0.5) 
 names(p)[3] &lt;- "Point Plot"; p[[3]]
-ggsave(filename = "./picture/chp9/plot3.png", plot = p[[3]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot3.png", plot = p[[3]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot3.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot3.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::geom_violin&lt;/h1&gt; 
@@ -182,9 +182,9 @@ ggsave(filename = "./picture/chp9/plot3.png", plot = p[[3]], height = 5, width =
 p[[4]] &lt;- p[[3]] +
   ggplot2::geom_violin(aes(colour = Shape), color = "grey", width = 0.2, alpha = 0.5) 
 names(p)[4] &lt;- "Violin Plot"; p[[4]]
-ggsave(filename = "./picture/chp9/plot4.png", plot = p[[4]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot4.png", plot = p[[4]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot4.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot4.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;argument(position = position_nudge)&lt;/h1&gt; 
@@ -197,9 +197,9 @@ p[[5]] &lt;- ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = Shape))
   ggplot2::geom_violin(aes(colour = Shape), width = 0.1, position = position_nudge(x = 0.2), color = "grey", alpha = 0.5) + # 小提琴图右移0.2各单位，宽度0.1
   ggplot2::labs(x = "Moral &amp; Identity", y = "Mean of Reaction Time", title = "Boxplot of RT_mean by Shape")
 names(p)[5] &lt;- "Plot Position"; p[[5]]
-ggsave(filename = "./picture/chp9/plot5.png", plot = p[[5]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot5.png", plot = p[[5]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot5.png" width="95%"&gt;
+&lt;img src="./picture/chp11/plot5.png" width="95%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggdist::stat_halfeye&lt;/h1&gt; 
@@ -210,9 +210,9 @@ p[[6]] &lt;- p[[5]] +
   ggdist::stat_halfeye(adjust = 0.2,justification = -0.35, alpha = 0.5, width = 0.5,   # adjust 拟合的锐度(平滑度), justification位置(与ggplot方向相反), alpha 透明度
                        .width = 0, point_colour = NA) # 如果没有 .width = 0, point_colour = NA, halfeye也会画出一些黑点
 names(p)[6] &lt;- "Cloud Plot"; p[[6]]
-ggsave(filename = "./picture/chp9/plot6.png", plot = p[[6]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot6.png", plot = p[[6]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot6.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot6.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;Delete a layer&lt;/h1&gt; 
@@ -223,9 +223,9 @@ p[[7]] &lt;- p[[6]] # 把p[[6]]传递给p[[7]]
 p[[7]]$layers[3] &lt;- NULL # 然后把第三个图层--violin赋值为空
 # 这样就删除了violin这个图层
 names(p)[7] &lt;- "Delete Layers"; p[[7]]
-ggsave(filename = "./picture/chp9/plot7.png", plot = p[[7]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot7.png", plot = p[[7]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot7.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot7.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggdist::stat_dots&lt;/h1&gt; 
@@ -238,9 +238,9 @@ p[[8]] &lt;- ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = Shape,)
   ggdist::stat_dots(side = "left",justification = 1.15, alpha = 0.5) + 
   ggplot2::labs(x = "Moral &amp; Identity", y = "Mean of Reaction Time", title = "RainCloud Plot of RT_mean by Moral &amp; Identity")
 names(p)[8] &lt;- "RainCloud Plot"; p[[8]]
-ggsave(filename = "./picture/chp9/plot8.png", plot = p[[8]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot8.png", plot = p[[8]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot8.png" width="95%"&gt;
+&lt;img src="./picture/chp11/plot8.png" width="95%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::coor_flip&lt;/h1&gt; 
@@ -250,9 +250,9 @@ ggsave(filename = "./picture/chp9/plot8.png", plot = p[[8]], height = 5, width =
 p[[9]] &lt;- p[[8]] +
   ggplot2::coord_flip()
 names(p)[9] &lt;- "Plot Flip"; p[[9]]
-ggsave(filename = "./picture/chp9/plot9.png", plot = p[[9]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot9.png", plot = p[[9]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot9.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot9.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::theme(legend.position)&lt;/h1&gt; 
@@ -262,9 +262,9 @@ ggsave(filename = "./picture/chp9/plot9.png", plot = p[[9]], height = 5, width =
 p[[10]] &lt;- p[[9]] +
   ggplot2::theme(legend.position = "none")
 names(p)[10] &lt;- "Legend Hidden"; p[[10]]
-ggsave(filename = "./picture/chp9/plot10.png", plot = p[[10]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot10.png", plot = p[[10]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot10.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot10.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;Palette&lt;/h1&gt; 
@@ -277,12 +277,12 @@ palette &lt;- list(popsicle = popsicle, sunset = sunset, glassdoor = glassdoor)
 rm(popsicle, sunset, glassdoor)
 ```
 &lt;div style="display:flex; align-items:center; justify-content:center;"&gt;
-  &lt;img src="./picture/chp9/palette_popsicle.png" style="width:50%; height: 50%; margin-top: -10px;"&gt;
+  &lt;img src="./picture/chp11/palette_popsicle.png" style="width:50%; height: 50%; margin-top: -10px;"&gt;
 &lt;/div&gt;
 &lt;br&gt;
 &lt;div style="display:flex; align-items:center; justify-content:center; "&gt;
-&lt;img src="./picture/chp9/palette_sunset.png" style="width:50%; height: 50%; margin-top: -20px;"&gt;
-&lt;img src="./picture/chp9/palette_glassdoor.png" style="width:50%; height: 50%; margin-top: -20px;"&gt;
+&lt;img src="./picture/chp11/palette_sunset.png" style="width:50%; height: 50%; margin-top: -20px;"&gt;
+&lt;img src="./picture/chp11/palette_glassdoor.png" style="width:50%; height: 50%; margin-top: -20px;"&gt;
 &lt;/div&gt;
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::scale_fill_manual&lt;/h1&gt; 
@@ -292,9 +292,9 @@ rm(popsicle, sunset, glassdoor)
 p[[11]] &lt;- p[[10]] +
   ggplot2::scale_fill_manual(values = palette$popsicle)  # 用什么颜色，体现了你的审美！
 names(p)[11] &lt;- "Fill Color"; p[[11]]
-ggsave(filename = "./picture/chp9/plot11.png", plot = p[[11]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot11.png", plot = p[[11]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot11.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot11.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::theme(element_text)&lt;/h1&gt; 
@@ -304,9 +304,9 @@ ggsave(filename = "./picture/chp9/plot11.png", plot = p[[11]], height = 5, width
 p[[12]] &lt;- p[[11]] +
   ggplot2::theme(axis.text.y = element_text(color = palette$popsicle))
 names(p)[12] &lt;- "Axis Text Color"; p[[12]]
-ggsave(filename = "./picture/chp9/plot12.png", plot = p[[12]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot12.png", plot = p[[12]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot12.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot12.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::theme(element_text)&lt;/h1&gt; 
@@ -318,9 +318,9 @@ p[[13]] &lt;- p[[12]] +
                  axis.title = element_text(size = 14),
                  plot.title = element_text(size = 16),)
 names(p)[13] &lt;- "Axis Text Size"; p[[13]]
-ggsave(filename = "./picture/chp9/plot13.png", plot = p[[13]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot13.png", plot = p[[13]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot13.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot13.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::facet_wrap&lt;/h1&gt; 
@@ -330,9 +330,9 @@ ggsave(filename = "./picture/chp9/plot13.png", plot = p[[13]], height = 5, width
 p[[14]] &lt;- p[[13]] +
   ggplot2::facet_wrap(~Match)
 names(p)[14] &lt;- "Facet"; p[[14]]
-ggsave(filename = "./picture/chp9/plot14.png", plot = p[[14]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot14.png", plot = p[[14]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot14.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot14.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;ggplot2::theme(element_text)&lt;/h1&gt; 
@@ -342,9 +342,9 @@ ggsave(filename = "./picture/chp9/plot14.png", plot = p[[14]], height = 5, width
 p[[15]] &lt;- p[[14]] +
   ggplot2::theme(strip.text = element_text(size = 14)) 
 names(p)[15] &lt;- "Facet Text Size"; p[[15]]
-ggsave(filename = "./picture/chp9/plot15.png", plot = p[[15]], height = 5, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot15.png", plot = p[[15]], height = 5, width = 10, dpi = 300)
 ```
-&lt;img src="./picture/chp9/plot15.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot15.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;Layers and Facets Full Codes&lt;/h1&gt; 
@@ -364,12 +364,12 @@ ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = interaction(Shape, M
   ggplot2::scale_fill_manual(values = c(palette$sunset, palette$glassdoor)) + # 需要八种颜色来填充图片
   ggplot2::facet_wrap(~Match, ncol = 1) 
 
-ggsave(filename = "./picture/chp9/plot.png",plot = last_plot(), height = 7, width = 10, dpi = 300)
+ggsave(filename = "./picture/chp11/plot.png",plot = last_plot(), height = 7, width = 10, dpi = 300)
 ```
 
 ---
 ## &lt;h1 lang="en"&gt;Layers and Facets Final Plot&lt;/h1&gt; 
-&lt;img src="./picture/chp9/plot.png" width="100%"&gt;
+&lt;img src="./picture/chp11/plot.png" width="100%"&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

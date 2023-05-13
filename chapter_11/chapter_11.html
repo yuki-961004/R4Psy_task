@@ -494,8 +494,91 @@ fonttable()
  # 填在上面的text=element_text(family='Times New Roman')
 ```
 
+---
+## &lt;h1 lang="en"&gt;Save APA theme&lt;/h1&gt; 
 
+```r
+# 将刚刚制作的apa格式保存
+theme_apa &lt;- ggplot2::theme_bw() +
+             ggplot2::theme(#legend.position = "none",
+                            axis.text = element_text(size = 12), # 坐标轴字体大小
+                            axis.title = element_text(size = 14), # 坐标轴标题字体大小
+                            strip.text = element_text(size = 14), # facet标题字体大小
+                            plot.title = element_text(size = 16), # 图片整体标题字体大小
+                            strip.background = element_blank(), 
+                            panel.grid.major=element_blank(), 
+                            panel.grid.minor=element_blank(), 
+                            panel.border=element_blank(), 
+                            text=element_text(family='Times New Roman'), 
+                            )
+```
 
+---
+class: center, middle
+&lt;span style="font-size: 60px;"&gt;11.2 Reproduce a Plot&lt;/span&gt; &lt;br&gt;
+
+---
+## &lt;h1 lang="en"&gt;Reproduce this Plot&lt;/h1&gt; 
+&lt;br&gt;
+&lt;img src="./picture/chp11/reproduce.png" width="100%"&gt;
+&lt;br&gt;
+尽力来重现这张图
+
+---
+## &lt;h1 lang="en"&gt;df for Reproduce RT Plot&lt;/h1&gt; 
+
+```r
+df[[3]] &lt;- df[[1]] %&gt;%
+  tidyr::extract(Shape, into = c("Valence", "Identity"),
+                        regex = "(moral|immoral)(Self|Other)", remove = FALSE) %&gt;%
+  dplyr::mutate(Valence = case_when(Valence == "moral" ~ "Good",
+                                    Valence == "immoral" ~ "Bad"),
+                RT_ms = RT * 1000) %&gt;%
+  dplyr::mutate(Valence = factor(Valence, levels = c("Good", "Bad")),
+                Identity = factor(Identity, levels = c("Self", "Other"))) %&gt;%
+  dplyr::filter(ACC == 0 | ACC == 1) %&gt;%
+  dplyr::group_by(Sub, Valence, Match, Identity) %&gt;%
+  dplyr::summarise(RT_mean = mean(RT_ms),
+                   ACC_mean = mean(ACC),
+                   RT_sd = sd(RT_ms),
+                   ACC_sd = sd(ACC)) %&gt;%
+  dplyr::ungroup()
+names(df)[3] &lt;- "Reproduce RT Plot"
+```
+
+---
+## &lt;h1 lang="en"&gt;Reproduce RT Plot, x = Identity, group = Vlance&lt;/h1&gt; 
+
+```r
+# 复现x = Identity, y = RT_mean, group = Valence的stat_halfeye
+p[[25]] &lt;- ggplot2::ggplot(data = df[[3]], aes(x = Identity, y = RT_mean, group = Valence, fill = Valence, color = Valence)) +
+  tidybayes::stat_halfeye(alpha = 0.7) + 
+  ggplot2::geom_line(size = 1) +
+  ggplot2::scale_color_manual(values = c("#009F75", "#DF5A00")) +
+  ggplot2::scale_fill_manual(values = c("#009F75", "#DF5A00")) +
+  theme_apa
+names(p)[25] &lt;- "stat_halfeye: RT, x = Identity, group = Vlance"; p[[25]]
+ggsave(filename = "./picture/chp11/plot25.png", plot = p[[25]], height = 6, width = 8, dpi = 300)
+```
+
+&lt;img src="./picture/chp11/plot25.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;Reproduce RT Plot, x = Identity, group = Vlance&lt;/h1&gt; 
+
+```r
+# 复现x = Valence, y = RT_mean, group = Identity的stat_halfeye
+p[[26]] &lt;- ggplot2::ggplot(data = df[[3]], aes(x = Valence, y = RT_mean, group = Identity, fill = Identity, color = Identity)) +
+  tidybayes::stat_halfeye(alpha = 0.7) + 
+  ggplot2::geom_line(size = 1) +
+  ggplot2::scale_color_manual(values = c("#FF7168", "#00C3C6")) +
+  ggplot2::scale_fill_manual(values = c("#FF7168", "#00C3C6")) +
+  theme_apa
+names(p)[26] &lt;- "stat_halfeye: RT, x = Identity, group = Vlance"; p[[26]]
+ggsave(filename = "./picture/chp11/plot26.png", plot = p[[26]], height = 6, width = 8, dpi = 300)
+```
+
+&lt;img src="./picture/chp11/plot26.png" width="50%"&gt;
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>

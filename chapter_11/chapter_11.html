@@ -99,6 +99,13 @@ library(tidyverse)
 ```r
 library(ggplot2)
 library(ggdist) # 可以叠加在ggplot2的图层上，但是比ggplot2更漂亮
+library(patchwork) # 拼接多个图片
+#library(jtools) # jtools::theme_apa()
+library(papaja) # papaja::theme_apa() 对比之后发现，papaja的坐标轴更好看
+```
+
+```
+## Loading required package: tinylabels
 ```
 
 ---
@@ -145,7 +152,7 @@ names(df)[2] &lt;- "Clean"
 # 看看不同Shape情况下 平均反应时的分布情况
 p[[1]] &lt;- ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = Shape)) +
   ggplot2::geom_boxplot(color = "grey", alpha = 0.5) 
-names(p)[1] &lt;- "Box Plot"; p[[1]]
+names(p)[1] &lt;- "Basic: Box Plot"; p[[1]]
 ggsave(filename = "./picture/chp11/plot1.png", plot = p[[1]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot1.png" width="100%"&gt;
@@ -157,7 +164,7 @@ ggsave(filename = "./picture/chp11/plot1.png", plot = p[[1]], height = 5, width 
 # 增加横纵坐标标题
 p[[2]] &lt;- p[[1]] +
   ggplot2::labs(x = "Moral &amp; Identity", y = "Mean of Reaction Time", title = "Boxplot of RT_mean by Shape") 
-names(p)[2] &lt;- "Plot Labels"; p[[2]]
+names(p)[2] &lt;- "Basic: Plot Labels"; p[[2]]
 ggsave(filename = "./picture/chp11/plot2.png", plot = p[[2]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot2.png" width="100%"&gt;
@@ -169,7 +176,7 @@ ggsave(filename = "./picture/chp11/plot2.png", plot = p[[2]], height = 5, width 
 # 叠加点图
 p[[3]] &lt;- p[[2]] +
   ggplot2::geom_point(aes(colour = Shape), position = position_jitter(width = 0.2), size = 3, alpha = 0.5) 
-names(p)[3] &lt;- "Point Plot"; p[[3]]
+names(p)[3] &lt;- "Basic: Point Plot"; p[[3]]
 ggsave(filename = "./picture/chp11/plot3.png", plot = p[[3]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot3.png" width="100%"&gt;
@@ -181,7 +188,7 @@ ggsave(filename = "./picture/chp11/plot3.png", plot = p[[3]], height = 5, width 
 # 叠加小提琴图
 p[[4]] &lt;- p[[3]] +
   ggplot2::geom_violin(aes(colour = Shape), color = "grey", width = 0.2, alpha = 0.5) 
-names(p)[4] &lt;- "Violin Plot"; p[[4]]
+names(p)[4] &lt;- "Basic: Violin Plot"; p[[4]]
 ggsave(filename = "./picture/chp11/plot4.png", plot = p[[4]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot4.png" width="100%"&gt;
@@ -196,7 +203,7 @@ p[[5]] &lt;- ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = Shape))
   ggplot2::geom_point(aes(colour = Shape), position = position_jitter(width = 0.1), size = 3, alpha = 0.5) + # 点图处于中间，但是调整宽度
   ggplot2::geom_violin(aes(colour = Shape), width = 0.1, position = position_nudge(x = 0.2), color = "grey", alpha = 0.5) + # 小提琴图右移0.2各单位，宽度0.1
   ggplot2::labs(x = "Moral &amp; Identity", y = "Mean of Reaction Time", title = "Boxplot of RT_mean by Shape")
-names(p)[5] &lt;- "Plot Position"; p[[5]]
+names(p)[5] &lt;- "Basic: Plot Position"; p[[5]]
 ggsave(filename = "./picture/chp11/plot5.png", plot = p[[5]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot5.png" width="95%"&gt;
@@ -209,7 +216,7 @@ ggsave(filename = "./picture/chp11/plot5.png", plot = p[[5]], height = 5, width 
 p[[6]] &lt;- p[[5]] +
   ggdist::stat_halfeye(adjust = 0.2,justification = -0.35, alpha = 0.5, width = 0.5,   # adjust 拟合的锐度(平滑度), justification位置(与ggplot方向相反), alpha 透明度
                        .width = 0, point_colour = NA) # 如果没有 .width = 0, point_colour = NA, halfeye也会画出一些黑点
-names(p)[6] &lt;- "Cloud Plot"; p[[6]]
+names(p)[6] &lt;- "Basic: Cloud Plot"; p[[6]]
 ggsave(filename = "./picture/chp11/plot6.png", plot = p[[6]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot6.png" width="100%"&gt;
@@ -222,7 +229,7 @@ ggsave(filename = "./picture/chp11/plot6.png", plot = p[[6]], height = 5, width 
 p[[7]] &lt;- p[[6]] # 把p[[6]]传递给p[[7]]
 p[[7]]$layers[3] &lt;- NULL # 然后把第三个图层--violin赋值为空
 # 这样就删除了violin这个图层
-names(p)[7] &lt;- "Delete Layers"; p[[7]]
+names(p)[7] &lt;- "Basic: Delete Layers"; p[[7]]
 ggsave(filename = "./picture/chp11/plot7.png", plot = p[[7]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot7.png" width="100%"&gt;
@@ -237,7 +244,7 @@ p[[8]] &lt;- ggplot2::ggplot(df[[2]], aes(x = Shape, y = RT_mean, fill = Shape,)
   ggdist::stat_halfeye(adjust = 0.2,justification = -0.05, alpha = 0.5, width = 0.5, .width = 0, point_colour = NA) +
   ggdist::stat_dots(side = "left",justification = 1.15, alpha = 0.5) + 
   ggplot2::labs(x = "Moral &amp; Identity", y = "Mean of Reaction Time", title = "RainCloud Plot of RT_mean by Moral &amp; Identity")
-names(p)[8] &lt;- "RainCloud Plot"; p[[8]]
+names(p)[8] &lt;- "Basic: RainCloud Plot"; p[[8]]
 ggsave(filename = "./picture/chp11/plot8.png", plot = p[[8]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot8.png" width="95%"&gt;
@@ -249,7 +256,7 @@ ggsave(filename = "./picture/chp11/plot8.png", plot = p[[8]], height = 5, width 
 # 旋转图片，现在终于明白为什么叫raincloud了
 p[[9]] &lt;- p[[8]] +
   ggplot2::coord_flip()
-names(p)[9] &lt;- "Plot Flip"; p[[9]]
+names(p)[9] &lt;- "Basic: Plot Flip"; p[[9]]
 ggsave(filename = "./picture/chp11/plot9.png", plot = p[[9]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot9.png" width="100%"&gt;
@@ -261,7 +268,7 @@ ggsave(filename = "./picture/chp11/plot9.png", plot = p[[9]], height = 5, width 
 # 在这张图里，图例和横坐标表达的信息重复了，可以隐藏图例
 p[[10]] &lt;- p[[9]] +
   ggplot2::theme(legend.position = "none")
-names(p)[10] &lt;- "Legend Hidden"; p[[10]]
+names(p)[10] &lt;- "Basic: Legend Hidden"; p[[10]]
 ggsave(filename = "./picture/chp11/plot10.png", plot = p[[10]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot10.png" width="100%"&gt;
@@ -291,7 +298,7 @@ rm(popsicle, sunset, glassdoor)
 # 更改图片的填充颜色
 p[[11]] &lt;- p[[10]] +
   ggplot2::scale_fill_manual(values = palette$popsicle)  # 用什么颜色，体现了你的审美！
-names(p)[11] &lt;- "Fill Color"; p[[11]]
+names(p)[11] &lt;- "Basic: Fill Color"; p[[11]]
 ggsave(filename = "./picture/chp11/plot11.png", plot = p[[11]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot11.png" width="100%"&gt;
@@ -303,7 +310,7 @@ ggsave(filename = "./picture/chp11/plot11.png", plot = p[[11]], height = 5, widt
 # 坐标轴颜色
 p[[12]] &lt;- p[[11]] +
   ggplot2::theme(axis.text.y = element_text(color = palette$popsicle))
-names(p)[12] &lt;- "Axis Text Color"; p[[12]]
+names(p)[12] &lt;- "Basic: Axis Text Color"; p[[12]]
 ggsave(filename = "./picture/chp11/plot12.png", plot = p[[12]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot12.png" width="100%"&gt;
@@ -317,7 +324,7 @@ p[[13]] &lt;- p[[12]] +
   ggplot2::theme(axis.text = element_text(size = 12),
                  axis.title = element_text(size = 14),
                  plot.title = element_text(size = 16),)
-names(p)[13] &lt;- "Axis Text Size"; p[[13]]
+names(p)[13] &lt;- "Basic: Axis Text Size"; p[[13]]
 ggsave(filename = "./picture/chp11/plot13.png", plot = p[[13]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot13.png" width="100%"&gt;
@@ -329,7 +336,7 @@ ggsave(filename = "./picture/chp11/plot13.png", plot = p[[13]], height = 5, widt
 # 按照Match拆分为两个Facet
 p[[14]] &lt;- p[[13]] +
   ggplot2::facet_wrap(~Match)
-names(p)[14] &lt;- "Facet"; p[[14]]
+names(p)[14] &lt;- "Basic: Facet"; p[[14]]
 ggsave(filename = "./picture/chp11/plot14.png", plot = p[[14]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot14.png" width="100%"&gt;
@@ -341,7 +348,7 @@ ggsave(filename = "./picture/chp11/plot14.png", plot = p[[14]], height = 5, widt
 # Facet文字的大小
 p[[15]] &lt;- p[[14]] +
   ggplot2::theme(strip.text = element_text(size = 14)) 
-names(p)[15] &lt;- "Facet Text Size"; p[[15]]
+names(p)[15] &lt;- "Basic: Facet Text Size"; p[[15]]
 ggsave(filename = "./picture/chp11/plot15.png", plot = p[[15]], height = 5, width = 10, dpi = 300)
 ```
 &lt;img src="./picture/chp11/plot15.png" width="100%"&gt;
@@ -361,11 +368,14 @@ p[[16]] &lt;- ggplot2::ggplot(df[[2]],
   ggplot2::scale_fill_manual(values = c(palette$sunset, palette$glassdoor)) + # 需要八种颜色来填充图片
   ggplot2::facet_wrap(~Match, ncol = 1) 
 
-names(p)[16] &lt;- "Layers and Facets Full Codes"; p[[16]]
+names(p)[16] &lt;- "Basic: Interactional Fill"; p[[16]]
 ggsave(filename = "./picture/chp11/plot16.png",plot = p[[16]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot16.png" width="60%"&gt;
+
+---
+class: center, middle
+&lt;span style="font-size: 60px;"&gt;11.2 APA theme&lt;/span&gt; &lt;br&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;APA theme: theme_bw()&lt;/h1&gt; 
@@ -377,36 +387,33 @@ p[[17]] &lt;- p[[16]] +
 names(p)[17] &lt;- "APA theme: theme_bw"; p[[17]]
 ggsave(filename = "./picture/chp11/plot17.png", plot = p[[17]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot17.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;APA theme: legend.position&lt;/h1&gt; 
 
 ```r
-# 与之前一样，去掉图例
+# APA默认图例局右
 p[[18]] &lt;- p[[17]] +
-  ggplot2::theme(legend.position = "none",)  # 可能你的图片不需要去掉图例
+  ggplot2::theme(legend.position = "right",)  # 也可以去掉图例
 names(p)[18] &lt;- "APA theme: legend.position"; p[[18]]
 ggsave(filename = "./picture/chp11/plot18.png", plot = p[[18]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot18.png" width="100%"&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;APA theme: font_size&lt;/h1&gt; 
 
 ```r
-# 与之前一样，字体大小。具体大小需要你根据自己图片的相对大小调整
+# 除了字体大小，标题粗体居中
 p[[19]] &lt;- p[[18]] +
   ggplot2::theme(axis.text = element_text(size = 12), # 坐标轴字体大小
-                 axis.title = element_text(size = 14), # 坐标轴标题字体大小
-                 strip.text = element_text(size = 14), # facet标题字体大小
-                 plot.title = element_text(size = 16)) # 图片整体标题字体大小
+                 axis.title = element_text(size = 12), # 坐标轴标题字体大小
+                 strip.text = element_text(size = 12), # facet标题字体大小
+                 plot.title = element_text(size = 12, face = "bold", hjust = 0.5)) # 图片整体标题字体大小 title粗体，居中
 names(p)[19] &lt;- "APA theme: font_size"; p[[19]]
 ggsave(filename = "./picture/chp11/plot19.png", plot = p[[19]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot19.png" width="90%"&gt;
 
 ---
@@ -416,10 +423,9 @@ ggsave(filename = "./picture/chp11/plot19.png", plot = p[[19]], height = 5, widt
 # 去掉facet标题底色  
 p[[20]] &lt;- p[[19]] +
   ggplot2::theme(strip.background = element_blank()) 
-names(p)[20] &lt;- "APA theme: "; p[[20]]
+names(p)[20] &lt;- "APA theme: facet_title_background"; p[[20]]
 ggsave(filename = "./picture/chp11/plot20.png", plot = p[[20]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot20.png" width="100%"&gt;
 
 
@@ -433,7 +439,6 @@ p[[21]] &lt;- p[[20]] +
 names(p)[21] &lt;- "APA theme: panel.grid.major"; p[[21]]
 ggsave(filename = "./picture/chp11/plot21.png", plot = p[[21]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot21.png" width="100%"&gt;
 
 ---
@@ -446,7 +451,6 @@ p[[22]] &lt;- p[[21]] +
 names(p)[22] &lt;- "APA theme: panel.grid.minor"; p[[22]]
 ggsave(filename = "./picture/chp11/plot22.png", plot = p[[22]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot22.png" width="100%"&gt;
 
 ---
@@ -455,11 +459,10 @@ ggsave(filename = "./picture/chp11/plot22.png", plot = p[[22]], height = 5, widt
 ```r
 # 隐藏边框
 p[[23]] &lt;- p[[22]] +
-  ggplot2::theme(panel.border=element_blank()) 
+  ggplot2::theme(panel.border=element_blank()) # 也可以不去除边框，保留坐标轴
 names(p)[23] &lt;- "APA theme: panel.border"; p[[23]]
 ggsave(filename = "./picture/chp11/plot23.png", plot = p[[23]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot23.png" width="100%"&gt;
 
 ---
@@ -472,7 +475,6 @@ p[[24]] &lt;- p[[23]] +
 names(p)[24] &lt;- "APA theme: font_family"; p[[24]]
 ggsave(filename = "./picture/chp11/plot24.png", plot = p[[24]], height = 5, width = 10, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot24.png" width="100%"&gt;
 
 ---
@@ -502,30 +504,44 @@ fonttable()
 theme_apa &lt;- ggplot2::theme_bw() +
              ggplot2::theme(#legend.position = "none",
                             axis.text = element_text(size = 12), # 坐标轴字体大小
-                            axis.title = element_text(size = 14), # 坐标轴标题字体大小
-                            strip.text = element_text(size = 14), # facet标题字体大小
-                            plot.title = element_text(size = 16), # 图片整体标题字体大小
-                            strip.background = element_blank(), 
-                            panel.grid.major=element_blank(), 
-                            panel.grid.minor=element_blank(), 
-                            panel.border=element_blank(), 
-                            text=element_text(family='Times New Roman'), 
+                            axis.title = element_text(size = 12), # 坐标轴标题字体大小
+                            strip.text = element_text(size = 12), # facet标题字体大小
+                            plot.title = element_text(size = 12, face = "bold", hjust = 0.5), # 图片整体标题字体大小
+                            strip.background = element_blank(), # facet标题的背景
+                            panel.grid.major=element_blank(), # 水平参考线
+                            panel.grid.minor=element_blank(), # 垂直参考线
+                            panel.border=element_blank(), # 边框
+                            text=element_text(family='Times New Roman'), #字体family,       
+                            # papaja::theme_apa()会warning找不到Windows中字体，但其实如果你载入了，就可以在R中找到
                             )
+# 你可以在载入了papaja(jtools)包之后，在画完图后加入 theme_apa()，获得一样的效果
 ```
 
 ---
+## &lt;h1 lang="en"&gt;APA theme: font_family&lt;/h1&gt; 
+
+```r
+# 和直接用papaja::theme_apa()制作的对比一下,坐标轴更好看了，其他几乎一样
+p[[24]] &lt;- p[[16]] +
+  papaja::theme_apa(base_family = "Times New Roman")
+names(p)[24] &lt;- "APA theme: font_family"; p[[24]]
+ggsave(filename = "./picture/chp11/plot24_apa.png", plot = p[[24]], height = 5, width = 10, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot24_apa.png" width="100%"&gt;
+
+---
 class: center, middle
-&lt;span style="font-size: 60px;"&gt;11.2 Reproduce a Plot&lt;/span&gt; &lt;br&gt;
+&lt;span style="font-size: 60px;"&gt;11.3 Reproduce a Plot&lt;/span&gt; &lt;br&gt;
 
 ---
 ## &lt;h1 lang="en"&gt;Reproduce this Plot&lt;/h1&gt; 
 &lt;br&gt;
 &lt;img src="./picture/chp11/reproduce.png" width="100%"&gt;
 &lt;br&gt;
-尽力来重现这张图
+尽力来重现这张图。[由于数据本身和数据清洗的不同，无法完全100%复现]
 
 ---
-## &lt;h1 lang="en"&gt;df for Reproduce RT Plot&lt;/h1&gt; 
+## &lt;h1 lang="en"&gt;df for Reproduce&lt;/h1&gt; 
 
 ```r
 df[[3]] &lt;- df[[1]] %&gt;%
@@ -543,11 +559,11 @@ df[[3]] &lt;- df[[1]] %&gt;%
                    RT_sd = sd(RT_ms),
                    ACC_sd = sd(ACC)) %&gt;%
   dplyr::ungroup()
-names(df)[3] &lt;- "Reproduce RT Plot"
+names(df)[3] &lt;- "Reproduce RT"
 ```
 
 ---
-## &lt;h1 lang="en"&gt;Reproduce RT Plot, x = Identity, group = Vlance&lt;/h1&gt; 
+## &lt;h1 lang="en"&gt;Reproduce: RT = Identity * Valencey&lt;/h1&gt; 
 
 ```r
 # 复现x = Identity, y = RT_mean, group = Valence的stat_halfeye
@@ -556,15 +572,15 @@ p[[25]] &lt;- ggplot2::ggplot(data = df[[3]], aes(x = Identity, y = RT_mean, gro
   ggplot2::geom_line(size = 1) +
   ggplot2::scale_color_manual(values = c("#009F75", "#DF5A00")) +
   ggplot2::scale_fill_manual(values = c("#009F75", "#DF5A00")) +
-  theme_apa
-names(p)[25] &lt;- "stat_halfeye: RT, x = Identity, group = Vlance"; p[[25]]
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Self-Referential") + ylab("Posteior of reaction times")
+names(p)[25] &lt;- "Reproduce: RT = Identity * Valencey"; p[[25]]
 ggsave(filename = "./picture/chp11/plot25.png", plot = p[[25]], height = 6, width = 8, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot25.png" width="50%"&gt;
 
 ---
-## &lt;h1 lang="en"&gt;Reproduce RT Plot, x = Identity, group = Vlance&lt;/h1&gt; 
+## &lt;h1 lang="en"&gt;Reproduce: RT = Valencey * Identity&lt;/h1&gt; 
 
 ```r
 # 复现x = Valence, y = RT_mean, group = Identity的stat_halfeye
@@ -573,12 +589,213 @@ p[[26]] &lt;- ggplot2::ggplot(data = df[[3]], aes(x = Valence, y = RT_mean, grou
   ggplot2::geom_line(size = 1) +
   ggplot2::scale_color_manual(values = c("#FF7168", "#00C3C6")) +
   ggplot2::scale_fill_manual(values = c("#FF7168", "#00C3C6")) +
-  theme_apa
-names(p)[26] &lt;- "stat_halfeye: RT, x = Identity, group = Vlance"; p[[26]]
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Valence") + ylab("Posteior of reaction times")
+names(p)[26] &lt;- "Reproduce: RT = Valencey * Identity"; p[[26]]
 ggsave(filename = "./picture/chp11/plot26.png", plot = p[[26]], height = 6, width = 8, dpi = 300)
 ```
-
 &lt;img src="./picture/chp11/plot26.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;df for Reproduce RT_diff&lt;/h1&gt; 
+
+```r
+# 比较Good 和 Bad之间的差异
+df[[4]] &lt;- df[[3]] %&gt;%
+  dplyr::filter(Match == "match") %&gt;%
+  dplyr::select(-Match, -ACC_mean, -RT_sd, -ACC_sd) %&gt;%
+  tidyr::pivot_wider(names_from = Valence, values_from = RT_mean) %&gt;%
+  dplyr::mutate(diff_Good_Bad = Good - Bad) 
+names(df)[4] &lt;- "Reproduce RT Good vs Bad"
+
+# 比较Self 和 Other之间的差异
+df[[5]] &lt;- df[[3]] %&gt;%
+  dplyr::filter(Match == "match") %&gt;%
+  dplyr::select(-Match, -ACC_mean, -RT_sd, -ACC_sd) %&gt;%
+  tidyr::pivot_wider(names_from = Identity, values_from = RT_mean) %&gt;%
+  dplyr::mutate(diff_Self_Other = Self - Other) 
+names(df)[5] &lt;- "Reproduce RT Self vs Other"
+```
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: RT, Good vs Bad&lt;/h1&gt; 
+
+```r
+# 复现Good vs Bad之间的反应时差异
+p[[27]] &lt;- ggplot2::ggplot(data = df[[4]], aes(x = diff_Good_Bad, fill = after_stat(x &gt; 0))) +
+  tidybayes::stat_halfeye() + 
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  ggplot2::scale_fill_manual(values = c('skyblue', 'gray80'),
+                             breaks = c(TRUE, FALSE),
+                             name = "Effect" , labels = c("Yes", "No")) +
+  facet_wrap(~ Identity) +
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Valence effect on RTs") + ylab("Good vs Bad")
+names(p)[27] &lt;- "Reproduce: RT_diff (Good vs Bad)"; p[[27]]
+ggsave(filename = "./picture/chp11/plot27.png", plot = p[[27]], height = 6, width = 8, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot27.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: RT, Self vs Other&lt;/h1&gt; 
+
+```r
+# 复现Self vs Other之间的反应时差异
+p[[28]] &lt;- ggplot2::ggplot(data = df[[5]], aes(x = diff_Self_Other, fill = after_stat(x &gt; 0))) +
+  tidybayes::stat_halfeye() + 
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  ggplot2::scale_fill_manual(values = c('skyblue', 'gray80'),
+                             breaks = c(TRUE, FALSE),
+                             name = "Effect" , labels = c("Yes", "No")) +
+  facet_wrap(~ Valence) +
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Self-referential effect on RTs") + ylab("Self vs Other")
+names(p)[28] &lt;- "Reproduce: RT_diff (Good vs Bad)"; p[[28]]
+ggsave(filename = "./picture/chp11/plot28.png", plot = p[[28]], height = 6, width = 8, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot28.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;df for Reproduce Dprime&lt;/h1&gt; 
+
+```r
+df[[6]] &lt;- df[[3]] %&gt;%
+  dplyr::select(-RT_mean, -RT_sd) %&gt;%
+  pivot_wider(., names_from = c(Match, Identity), values_from = c(ACC_mean, ACC_sd), names_glue = "{Identity}_{Match}_{.value}") %&gt;%
+  dplyr::mutate( # 计算Self情况下的d prime
+    hit = Self_match_ACC_mean,
+    miss = 1 - Self_match_ACC_mean,
+    fa = 1 - Self_mismatch_ACC_mean,
+    cr = Self_mismatch_ACC_mean,
+    Self_dprime = qnorm(hit) - qnorm(fa),
+    Self_dprime_sd = sqrt((Self_match_ACC_sd^2 / hit^2 + Self_mismatch_ACC_sd^2 / fa^2))
+  ) %&gt;%
+  dplyr::select(.,-hit, -miss, -fa, -cr) %&gt;%
+  dplyr::mutate( # 计算Other情况下的d prime
+    hit = Other_match_ACC_mean,
+    miss = 1 - Other_match_ACC_mean,
+    fa = 1 - Other_mismatch_ACC_mean,
+    cr = Other_mismatch_ACC_mean,
+    Other_dprime = qnorm(hit) - qnorm(fa),
+    Other_dprime_sd = sqrt((Other_match_ACC_sd^2 / hit^2 + Other_mismatch_ACC_sd^2 / fa^2))
+  ) %&gt;%
+  dplyr::select(.,-hit, -miss, -fa, -cr) %&gt;%
+  dplyr::select(-Self_match_ACC_mean, -Self_mismatch_ACC_mean, -Self_match_ACC_sd, -Self_mismatch_ACC_sd,
+                -Other_match_ACC_mean, -Other_mismatch_ACC_mean, -Other_match_ACC_sd, -Other_mismatch_ACC_sd,) %&gt;%
+  tidyr::pivot_longer(., cols = c(Self_dprime, Self_dprime_sd, Other_dprime, Other_dprime_sd),
+                      names_to = c("Identity", ".value"), names_pattern = "(.*?)_(.*)") %&gt;%
+  dplyr::filter(dprime != Inf) %&gt;% # 有些dprime是无限大，需要过滤掉
+  dplyr::mutate(Valence = factor(Valence, levels = c("Good", "Bad")),
+                Identity = factor(Identity, levels = c("Self", "Other"))) 
+names(df)[6] &lt;- "Reproduce Dprime"
+```
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: Dprime = Valencey * Identity&lt;/h1&gt; 
+
+```r
+# 复现x = Identity, y = RT_mean, group = Valence的stat_halfeye
+p[[29]] &lt;- ggplot2::ggplot(data = df[[6]], aes(x = Identity, y = dprime, group = Valence, fill = Valence, color = Valence)) +
+  tidybayes::stat_halfeye(alpha = 0.7) + 
+  ggplot2::geom_line(size = 1) +
+  ggplot2::scale_color_manual(values = c("#009F75", "#DF5A00")) +
+  ggplot2::scale_fill_manual(values = c("#009F75", "#DF5A00")) +
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Self-Referential") + ylab("Posteior of sensitivity d'")
+names(p)[29] &lt;- "Reproduce: Dprime = Identity * Valencey"; p[[29]]
+ggsave(filename = "./picture/chp11/plot29.png", plot = p[[29]], height = 6, width = 8, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot29.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: Dprime = Valencey * Identity&lt;/h1&gt; 
+
+```r
+# 复现x = Identity, y = RT_mean, group = Valence的stat_halfeye
+p[[30]] &lt;- ggplot2::ggplot(data = df[[6]], aes(x = Valence, y = dprime, group = Identity, fill = Identity, color = Identity)) +
+  tidybayes::stat_halfeye(alpha = 0.7) + 
+  ggplot2::geom_line(size = 1) +
+  ggplot2::scale_color_manual(values = c("#FF7168", "#00C3C6")) +
+  ggplot2::scale_fill_manual(values = c("#FF7168", "#00C3C6")) +
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Valence") + ylab("Posteior of sensitivity d'")  
+names(p)[30] &lt;- "Reproduce: Dprime = Valencey * Identity"; p[[30]]
+ggsave(filename = "./picture/chp11/plot30.png", plot = p[[30]], height = 6, width = 8, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot30.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;df for Reproduce Dprime_diff&lt;/h1&gt; 
+
+```r
+# 比较Good 和 Bad之间的差异
+df[[7]] &lt;- df[[6]] %&gt;%
+  dplyr::select(-dprime_sd) %&gt;%
+  tidyr::pivot_wider(names_from = Valence, values_from = dprime) %&gt;%
+  dplyr::mutate(diff_Good_Bad = Good - Bad) 
+names(df)[7] &lt;- "Reproduce Dprime Good vs Bad"
+
+# 比较Self 和 Other之间的差异
+df[[8]] &lt;- df[[6]] %&gt;%
+  dplyr::select(-dprime_sd) %&gt;%
+  tidyr::pivot_wider(names_from = Identity, values_from = dprime) %&gt;%
+  dplyr::mutate(diff_Self_Other = Self - Other) 
+names(df)[8] &lt;- "Reproduce Dprime Self vs Other"
+```
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: Dprime, Good vs Bad&lt;/h1&gt; 
+
+```r
+# 复现Good vs Bad之间的反应时差异
+p[[31]] &lt;- ggplot2::ggplot(data = df[[7]], aes(x = diff_Good_Bad, fill = after_stat(x &gt; 0))) +
+  tidybayes::stat_halfeye() + 
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  ggplot2::scale_fill_manual(values = c('skyblue', 'gray80'),
+                             breaks = c(TRUE, FALSE),
+                             name = "Effect" , labels = c("Yes", "No")) +
+  facet_wrap(~ Identity) +
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Valence effect on d prime") + ylab("Good vs Bad")
+names(p)[31] &lt;- "Reproduce: Dprime_diff (Good vs Bad)"; p[[31]]
+ggsave(filename = "./picture/chp11/plot31.png", plot = p[[31]], height = 6, width = 8, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot31.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: Dprime, Self vs Other&lt;/h1&gt; 
+
+```r
+# 复现Self vs Other之间的反应时差异
+p[[32]] &lt;- ggplot2::ggplot(data = df[[8]], aes(x = diff_Self_Other, fill = after_stat(x &gt; 0))) +
+  tidybayes::stat_halfeye() + 
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  ggplot2::scale_fill_manual(values = c('skyblue', 'gray80'),
+                             breaks = c(TRUE, FALSE),
+                             name = "Effect" , labels = c("Yes", "No")) +
+  facet_wrap(~ Valence) +
+  papaja::theme_apa(base_family = "Times New Roman") +
+  xlab("Self-referential effect on d prime") + ylab("Self vs Other")
+names(p)[32] &lt;- "Reproduce: Dprime_diff (Good vs Bad)"; p[[32]]
+ggsave(filename = "./picture/chp11/plot32.png", plot = p[[32]], height = 6, width = 8, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot32.png" width="50%"&gt;
+
+---
+## &lt;h1 lang="en"&gt;Reproduce: patchwork 8 plot&lt;/h1&gt; 
+
+```r
+p[[33]] &lt;- p[[25]] + p[[29]] + p[[26]] + p[[30]] + # 这里调整每个图的顺序
+           p[[27]] + p[[28]] + p[[31]] + p[[32]] + # 这里调整每个图的顺序
+           # 在组合所有图片后，使用patchwork进行修饰(换句话说，如果不使用下两行的命令，多个图片无法直接组合)
+           patchwork::plot_annotation(tag_levels = 'A') + # 给每个图表上A B C D
+           patchwork::plot_layout(nrow = 2, byrow = TRUE, # 设定图片按照什么循序排列，有几行几列
+                       guides = 'collect') # 一样的图例统一放在右侧
+names(p)[33] &lt;- "Reproduce: patchwork 8 plot"; p[[33]]
+ggsave(filename = "./picture/chp11/plot33.png", plot = p[[33]], height = 10, width = 20, dpi = 300)
+```
+&lt;img src="./picture/chp11/plot33.png" width="95%"&gt;
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
